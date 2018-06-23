@@ -100,7 +100,7 @@ public class CategoryEditActivity extends BaseActivity {
                 category.setTitle(title.getText().toString());
                 category.setContext(context.getText().toString());
                 category.setPackageName(title.getText().toString());
-                category.setIcon(tools.DrawableToByteArray(ContextCompat.getDrawable(this, R.drawable.ic_launcher_foreground)));
+                category.setIcon(tools.DrawableToByteArray(ContextCompat.getDrawable(this, R.drawable.ic_folder_black_24dp)));
                 category.save();
                 return true;
             }

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
@@ -65,7 +66,7 @@ public class MainActivity extends BaseActivity
         setContentView(R.layout.activity_main);
 
         if(LitePal.where("PackageName = ?", "全部收藏").find(Category.class).size() == 0){
-            Category category = new Category("全部收藏", tools.DrawableToByteArray(ContextCompat.getDrawable(this, R.drawable.ic_launcher_foreground)), "全部收藏", "全部收藏");
+            Category category = new Category("全部收藏", tools.DrawableToByteArray(ContextCompat.getDrawable(this, R.drawable.ic_folder_black_24dp)), "全部收藏", "全部收藏");
             category.save();
         }
 

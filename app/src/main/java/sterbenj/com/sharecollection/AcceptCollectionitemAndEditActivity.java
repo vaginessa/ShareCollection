@@ -47,7 +47,7 @@ public class AcceptCollectionitemAndEditActivity extends BaseActivity {
         setContentView(R.layout.activity_accept_edit_collectionitem);
 
         if(LitePal.where("PackageName = ?", "全部收藏").find(Category.class).size() == 0){
-            Category category = new Category("全部收藏", tools.DrawableToByteArray(ContextCompat.getDrawable(this, R.drawable.ic_launcher_foreground)), "全部收藏", "全部收藏");
+            Category category = new Category("全部收藏", tools.DrawableToByteArray(ContextCompat.getDrawable(this, R.drawable.ic_folder_black_24dp)), "全部收藏", "全部收藏");
             category.save();
         }
 
