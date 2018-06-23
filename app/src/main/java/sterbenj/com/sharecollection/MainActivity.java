@@ -110,7 +110,6 @@ public class MainActivity extends BaseActivity
                     Intent intent = new Intent(mContext, CollectionItemListActivity.class);
                     intent.putExtra("Category", category1);
                     intent.putExtra("SpinnerIndex", position);
-                    intent.setAction("From CategoryList");
                     mContext.startActivity(intent);
                 }
             }

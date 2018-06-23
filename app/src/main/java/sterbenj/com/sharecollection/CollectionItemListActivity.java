@@ -196,6 +196,7 @@ public class CollectionItemListActivity extends BaseActivity {
             public void onClick(View v) {
                 Intent intent = new Intent(getApplicationContext(), CategoryEditActivity.class);
                 intent.putExtra("category", category);
+                intent.setAction("From CategoryList");
                 startActivityForResult(intent, 1);
             }
         });
