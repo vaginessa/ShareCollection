@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#3f51b5</color>
+    <color name="colorPrimaryDark">#ffffff</color>
+    <color name="colorAccent">#fa6088ff</color>
+    <color name="colorAccent_second">#9fa3b1</color>
+    <color name="secondary_text_material_dark">#ffffff</color>
+    <color name="foreground_material_light">#000000</color>
+    <color name="White_navigationbar">#b6000000</color>
+    <color name="gray_second">#e3e3e3</color>
+    <color name="blue_dark_light">#57b9ff</color>
+    <color name="Line_Light">#dedede</color>
+    <color name="cardview_dark2">#4b4b4b</color>
+</resources>

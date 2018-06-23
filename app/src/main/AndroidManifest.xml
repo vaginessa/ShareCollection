@@ -1,0 +1,56 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="sterbenj.com.sharecollection">
+
+    <application
+        android:name="org.litepal.LitePalApplication"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true">
+        <activity
+            android:name=".MainActivity"
+            android:label="@string/app_name"
+            android:theme="@style/white_transStat">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:windowSoftInputMode="adjustPan"
+            android:name=".CategoryEditActivity"
+            android:label="编辑"
+            android:theme="@style/white_transStat" />
+        <activity android:name=".SettingActivity"
+            android:label="设置"
+            android:theme="@style/white_transStat">
+        </activity>
+        <activity
+            android:name=".ApplistActivity"
+            android:theme="@style/white_transStat"
+            android:label="应用列表">
+        </activity>
+        <activity
+            android:name=".CollectionItemListActivity"
+            android:theme="@style/white_transStat">
+        </activity>
+        <activity
+            android:name=".AcceptCollectionitemAndEditActivity"
+            android:theme="@style/white_transStat"
+            android:label="全局分享收藏">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND_MULTIPLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity>
+
+    </application>
+</manifest>
