@@ -74,8 +74,8 @@ public class CategoryEditActivity extends BaseActivity {
                     newIntent.putExtra("packageName", category.getPackageName());
                     setResult(RESULT_OK, newIntent);
                     Toast.makeText(this, "保存成功", Toast.LENGTH_SHORT).show();
+                    finish();
                 }
-                finish();
                 break;
 
             //返回箭头按钮
@@ -116,7 +116,7 @@ public class CategoryEditActivity extends BaseActivity {
                 category.setTitle(title.getText().toString());
                 category.setContext(context.getText().toString());
                 category.setPackageName(title.getText().toString());
-                category.setIcon(tools.DrawableToByteArray(ContextCompat.getDrawable(this, R.drawable.ic_launcher_foreground)));
+                category.setIcon(tools.DrawableToByteArray(ContextCompat.getDrawable(this, R.drawable.ic_folder_black_24dp)));
                 category.updateAll("PackageName = ?", packageName);
                 return true;
             }
