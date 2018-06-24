@@ -1,7 +1,7 @@
 # ShareCollection
 https://www.coolapk.com/apk/190689
 
-※ This is a Android Project
+※ This is an Android Project
 
 ※ It can collect the activity from system share's API, and dont need root or xposed.
 
