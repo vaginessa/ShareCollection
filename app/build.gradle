@@ -6,8 +6,8 @@ android {
         applicationId 'sterbenj.com.sharecollection'
         minSdkVersion 21
         targetSdkVersion 27
-        versionCode 5
-        versionName "1.0.4-beta"
+        versionCode 6
+        versionName "1.1.0-beta"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -32,4 +32,5 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     implementation 'org.litepal.android:core:2.0.0'
     implementation 'com.github.clans:fab:+'
+    implementation 'org.jsoup:jsoup:1.11.3'
 }

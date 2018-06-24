@@ -13,6 +13,7 @@ public class CollectionItem extends LitePalSupport implements Serializable {
     private String Context;
     private String mUri;
     private String ParentCategory;
+    private byte[] Image;
 
     public long getId() {
         return id;
@@ -34,6 +35,10 @@ public class CollectionItem extends LitePalSupport implements Serializable {
         return ParentCategory;
     }
 
+    public byte[] getImage() {
+        return Image;
+    }
+
     public void setTitle(String title) {
         Title = title;
     }
@@ -48,5 +53,9 @@ public class CollectionItem extends LitePalSupport implements Serializable {
 
     public void setParentCategory(String parentCategory) {
         ParentCategory = parentCategory;
+    }
+
+    public void setImage(byte[] image) {
+        Image = image;
     }
 }

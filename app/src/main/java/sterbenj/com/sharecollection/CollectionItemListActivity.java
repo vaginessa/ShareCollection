@@ -56,8 +56,9 @@ public class CollectionItemListActivity extends BaseActivity {
 
     @Override
     protected void onResume() {
-        Log.d("超级大bug", "onResume: ");
         super.onResume();
+
+        //从数据库中读取对应类别数据
         if (category.getPackageName().equals("全部收藏")){
             collectionItemList.clear();
             List<CollectionItem> newList = LitePal.order("id desc").find(CollectionItem.class);
@@ -135,7 +136,7 @@ public class CollectionItemListActivity extends BaseActivity {
                 else{
                     Intent intent1 = new Intent(getApplicationContext(), AcceptCollectionitemAndEditActivity.class);
                     intent1.setAction("FROM_IN");
-                    intent1.putExtra("CollectionItem", collectionItem);
+                    intent1.putExtra("CollectionItemID", (long)collectionItem.getId());
                     intent1.putExtra("SpinnerIndex", SpinnerIndex);
                     startActivity(intent1);
                 }

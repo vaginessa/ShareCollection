@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.widget.AppCompatImageView;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -47,6 +48,7 @@ public class CollectionItemListAdapter extends RecyclerView.Adapter<CollectionIt
         String uri;
         String ParentPackageName;
         CheckBox checkBox;
+        AppCompatImageView appCompatImageView;
 
         public ViewHolder(View itemView){
             super(itemView);
@@ -56,6 +58,7 @@ public class CollectionItemListAdapter extends RecyclerView.Adapter<CollectionIt
             line = (View)itemView.findViewById(R.id.collectionlistitem_line);
             context = (TextView)itemView.findViewById(R.id.collectionlistitem_context);
             checkBox = (CheckBox)itemView.findViewById(R.id.collectionlistitem_checkbox);
+            appCompatImageView = (AppCompatImageView)itemView.findViewById(R.id.collectionlistitem_image);
         }
 
         public void setData(CollectionItem collectionItem, int position){
@@ -72,6 +75,9 @@ public class CollectionItemListAdapter extends RecyclerView.Adapter<CollectionIt
             context.setText(collectionItem.getContext());
             uri = collectionItem.getmUri();
             ParentPackageName = collectionItem.getParentCategory();
+            if (collectionItem.getImage() != null){
+                appCompatImageView.setImageDrawable(tools.ByteArrayToDrawable(collectionItem.getImage()));
+            }
         }
     }
 

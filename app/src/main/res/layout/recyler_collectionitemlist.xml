@@ -32,7 +32,7 @@
                 android:clickable="true"
                 android:foreground="?android:attr/selectableItemBackground"
                 app:cardBackgroundColor="@android:color/background_light"
-                app:cardCornerRadius="2dp"
+                app:cardCornerRadius="3dp"
                 app:cardElevation="2dp"
                 app:cardUseCompatPadding="true"
                 app:contentPadding="0dp">
@@ -40,6 +40,12 @@
                 <RelativeLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content">
+
+                    <android.support.v7.widget.AppCompatImageView
+                        android:id="@+id/collectionlistitem_image"
+                        android:layout_width="match_parent"
+                        android:layout_height="80dp"
+                        android:scaleType="centerCrop" />
 
                     <TextView
                         android:id="@+id/collectionlistitem_title"
@@ -49,7 +55,8 @@
                         android:padding="8dp"
                         android:text="23333333333333"
                         android:textSize="16sp"
-                        android:textStyle="bold" />
+                        android:textStyle="bold"
+                        android:layout_below="@id/collectionlistitem_image"/>
 
                     <View
                         android:id="@+id/collectionlistitem_line"
