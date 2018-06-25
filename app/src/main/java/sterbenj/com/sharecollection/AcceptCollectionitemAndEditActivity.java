@@ -1,12 +1,14 @@
 package sterbenj.com.sharecollection;
 
 import android.content.Intent;
+import android.media.Image;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.design.widget.TextInputEditText;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.widget.ContentLoadingProgressBar;
 import android.support.v7.widget.AppCompatImageView;
 import android.support.v7.widget.AppCompatSpinner;
 import android.support.v7.widget.CardView;
@@ -38,9 +40,11 @@ public class AcceptCollectionitemAndEditActivity extends BaseActivity {
 
     private CardView cardView;
     private TextInputEditText Title;
+    private String title;
     private TextInputEditText Context;
+    private String context;
     private AppCompatImageView appCompatImageView;
-    private ProgressBar progressBar;
+    private ContentLoadingProgressBar progressBar;
     private CollectionItem collectionItem;
     private AppCompatSpinner spinner;
     private Toolbar toolbar;
@@ -63,41 +67,78 @@ public class AcceptCollectionitemAndEditActivity extends BaseActivity {
                 Document document;
                 Elements images;
                 Elements ImageUri;
-                String single;
+                String single = null;
                 document = Jsoup.connect(uri).timeout(10000).get();
+
+                title = document.getElementsByTag("title").text();
 
                 //微信公众号
                 if (uri.indexOf("weixin.qq.com") != -1){
                     images = document.getElementsByTag("img");
-                    ImageUri = images.select("[data-src$=png]");
-                    single = ImageUri.first().attr("abs:data-src");
+                    ImageUri = images.select("[data-src$=jpeg],[data-src$=png]");
+                    Log.d("++++++++++++++++++++", "run: " + ImageUri.size() + "and" + images.size());
+                    if (ImageUri.size() != 0) {
+                        single = ImageUri.first().attr("abs:data-src");
+                    }
                     Log.d("Accept", "run: weixin");
                 }
 
+                //bilibili
                 else if (uri.indexOf("bilibili.com") != -1){
+
+                    //获取所有meta标签数据
                     images = document.getElementsByTag("meta");
+                    //获取图片uri
                     ImageUri = images.select("[content$=.jpg]");
                     single = ImageUri.first().attr("abs:content");
+
+                    Log.d("+++++++++++++", "run: "+ document.getElementsByTag("h1").size());
+
+                    //获取并设置context
+                    ImageUri= images.select("[name=description]");
+                    if (ImageUri.size() != 0){
+                        context = ImageUri.attr("content");
+                    }
+
                     Log.d("Accept", "run: bilibili");
                 }
+
+                //知乎
+                else if (uri.indexOf("zhihu.com") != -1){
+                    images = document.getElementsByTag("link");
+                    ImageUri = images.select("[rel=shortcut icon]");
+                    if (images.size() != 0){
+                        single = ImageUri.attr("abs:href");
+                    }
+                }
+
+                //默认情况
                 else{
+                    //获取所有img标签数据
                     images = document.getElementsByTag("img");
-                    ImageUri = images.select("[content$=.jpg]");
+                    //筛选有可能有图片的标签
+                    ImageUri = images.select("[data-src$=jpeg],[data-src$=png],[src$=jpeg],[src$=png]");
+                    //筛选到时
                     if (ImageUri.size() != 0){
                         single = ImageUri.first().attr("abs:src");
                         Log.d("Accept", "In run: not 0");
                     }
+                    //筛选不到时
                     else{
-                        single = "";
+                        single = null;
                         Log.d("Accept", "In run: 0");
                     }
                     Log.d("Accept", "run: normal");
                 }
-                if (single.isEmpty()){
+
+                //主线程更新UI
+                //图片获取失败时
+                if (single == null){
                     Message message = new Message();
                     message.what = NO_IMAGE;
                     handler.sendMessage(message);
                 }
+                //获取成功时
                 else{
                     mImageUri = Uri.parse(single);
                     Message message = new Message();
@@ -110,6 +151,7 @@ public class AcceptCollectionitemAndEditActivity extends BaseActivity {
             {
                 e.printStackTrace();
             }
+            //链接超时
             finally {
                 Message message = new Message();
                 message.what = NO_IMAGE;
@@ -124,11 +166,15 @@ public class AcceptCollectionitemAndEditActivity extends BaseActivity {
             switch(msg.what){
                 case SET_IMAGE:
                     Glide.with(getApplicationContext()).load(mImageUri).error(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_close_black_24dp)).into(appCompatImageView);
+                    Title.setText(title);
+                    Context.setText(context);
                     progressBar.setVisibility(View.GONE);
                     hasFinishImage = true;
                     break;
                 case NO_IMAGE:
                     appCompatImageView.setImageDrawable(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_close_black_24dp));
+                    Title.setText(title);
+                    Context.setText(context);
                     progressBar.setVisibility(View.GONE);
                     hasFinishImage = true;
                     break;
@@ -154,7 +200,7 @@ public class AcceptCollectionitemAndEditActivity extends BaseActivity {
         Context = (TextInputEditText)findViewById(R.id.accept_edit_context);
         Title = (TextInputEditText)findViewById(R.id.accept_edit_title);
         appCompatImageView = (AppCompatImageView)findViewById(R.id.accept_collectionitem_image);
-        progressBar = (ProgressBar)findViewById(R.id.accept_collectionitem_progressbar);
+        progressBar = (ContentLoadingProgressBar) findViewById(R.id.accept_collectionitem_progressbar);
 
         //根据主题改变cardview背景
         switch (BaseActivity.sTheme){
@@ -200,10 +246,16 @@ public class AcceptCollectionitemAndEditActivity extends BaseActivity {
         //外部应用数据
         else{
             hasFinishImage = false;
-            data = intent.getStringExtra(Intent.EXTRA_TEXT);
-            uri = data.substring(data.indexOf("http"));
-            Context.setText(data.substring(0, data.indexOf("http")));
-            thread.start();
+            if (intent.getStringExtra(Intent.EXTRA_TEXT) != null){
+                data = intent.getStringExtra(Intent.EXTRA_TEXT);
+                uri = data.substring(data.indexOf("http"));
+                title = data.substring(0, data.indexOf("http"));
+                thread.start();
+            }
+            else{
+                Toast.makeText(this, "不支持的分享类型", Toast.LENGTH_SHORT).show();
+                finish();
+            }
         }
 
 

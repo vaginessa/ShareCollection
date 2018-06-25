@@ -92,8 +92,8 @@ public class CategoryEditActivity extends BaseActivity {
 
         //为新建自定义类时
         if (packageName == null){
-            if (title.getText().toString().isEmpty() || context.getText().toString().isEmpty()){
-                Toast.makeText(this, "类名或备注不能为空", Toast.LENGTH_SHORT).show();
+            if (title.getText().toString().isEmpty()){
+                Toast.makeText(this, "类名不能为空", Toast.LENGTH_SHORT).show();
                 return false;
             }
             else {
@@ -108,8 +108,8 @@ public class CategoryEditActivity extends BaseActivity {
 
         //为编辑自定义类时
         else if ((packageName.equals(category.getTitle())) && (packageName != null)){
-            if (title.getText().toString().isEmpty() || context.getText().toString().isEmpty()){
-                Toast.makeText(this, "类名或备注不能为空", Toast.LENGTH_SHORT).show();
+            if (title.getText().toString().isEmpty()){
+                Toast.makeText(this, "类名不能为空", Toast.LENGTH_SHORT).show();
                 return false;
             }
             else {
@@ -123,8 +123,8 @@ public class CategoryEditActivity extends BaseActivity {
         }
         //为编辑App分类时
         else{
-            if (title.getText().toString().isEmpty() || context.getText().toString().isEmpty()){
-                Toast.makeText(this, "类名或备注不能为空", Toast.LENGTH_SHORT).show();
+            if (title.getText().toString().isEmpty()){
+                Toast.makeText(this, "类名不能为空", Toast.LENGTH_SHORT).show();
                 return false;
             }
             else{
