@@ -220,6 +220,11 @@ public class AcceptCollectionitemAndEditActivity extends BaseActivity {
 
 
     @Override
+    public void onBackPressed() {
+        confirmBack();
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_accept_edit_collectionitem);

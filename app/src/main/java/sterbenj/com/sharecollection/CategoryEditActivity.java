@@ -54,6 +54,11 @@ public class CategoryEditActivity extends BaseActivity {
     }
 
     @Override
+    public void onBackPressed() {
+        confirmBack();
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_category_edit);
