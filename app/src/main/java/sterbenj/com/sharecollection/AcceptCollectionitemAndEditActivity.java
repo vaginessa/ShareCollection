@@ -1,5 +1,7 @@
 package sterbenj.com.sharecollection;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.media.Image;
 import android.net.Uri;
@@ -58,7 +60,37 @@ public class AcceptCollectionitemAndEditActivity extends BaseActivity {
     private boolean hasFinishImage;
     public static final int SET_IMAGE = 1;
     public static final int NO_IMAGE = 2;
+    private cacheData cache = new cacheData("", "");
 
+
+    //缓存原有数据
+    static class cacheData{
+        String Title;
+        String Context;
+
+        public cacheData(String title, String context){
+            Context = context;
+            Title = title;
+        }
+
+        public String getContext() {
+            return Context;
+        }
+
+        public String getTitle() {
+            return Title;
+        }
+
+        public void setContext(String context) {
+            Context = context;
+        }
+
+        public void setTitle(String title) {
+            Title = title;
+        }
+    }
+
+    //子线程获取uri信息
     private Thread thread = new Thread(new Runnable() {
         @Override
         public void run() {
@@ -70,6 +102,7 @@ public class AcceptCollectionitemAndEditActivity extends BaseActivity {
                 String single = null;
                 document = Jsoup.connect(uri).timeout(10000).get();
 
+                //获取标题
                 title = document.getElementsByTag("title").text();
 
                 //微信公众号
@@ -88,9 +121,12 @@ public class AcceptCollectionitemAndEditActivity extends BaseActivity {
 
                     //获取所有meta标签数据
                     images = document.getElementsByTag("meta");
+
                     //获取图片uri
                     ImageUri = images.select("[content$=.jpg]");
-                    single = ImageUri.first().attr("abs:content");
+                    if (ImageUri.size() != 0){
+                        single = ImageUri.first().attr("abs:content");
+                    }
 
                     Log.d("+++++++++++++", "run: "+ document.getElementsByTag("h1").size());
 
@@ -239,6 +275,9 @@ public class AcceptCollectionitemAndEditActivity extends BaseActivity {
                 progressBar.setVisibility(View.GONE);
             }
 
+            //初始化cache
+            cache = new cacheData(collectionItem.getTitle(), collectionItem.getContext());
+
             PackageName = collectionItem.getParentCategory();
             SpinnerIndex = intent.getIntExtra("SpinnerIndex", -1);
         }
@@ -289,7 +328,6 @@ public class AcceptCollectionitemAndEditActivity extends BaseActivity {
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         toolbar.setTitle("编辑");
-
     }
 
     @Override
@@ -305,7 +343,7 @@ public class AcceptCollectionitemAndEditActivity extends BaseActivity {
                 saveCollectionItem();
                 break;
             case android.R.id.home:
-                finish();
+                confirmBack();
                 break;
         }
         return true;
@@ -335,6 +373,31 @@ public class AcceptCollectionitemAndEditActivity extends BaseActivity {
         }
         else{
             Toast.makeText(this, "保存失败，图片未加载完成", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    //确认是否返回
+    public void confirmBack(){
+        if (!(cache.getContext().equals(Context.getText().toString()) && cache.getTitle().equals(Title.getText().toString()))){
+            AlertDialog.Builder dialog = new AlertDialog.Builder(AcceptCollectionitemAndEditActivity.this);
+            dialog.setMessage("内容已经更改，是否保存？");
+            dialog.setCancelable(true);
+            dialog.setPositiveButton("保存", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    saveCollectionItem();
+                }
+            });
+            dialog.setNegativeButton("不保存", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    finish();
+                }
+            });
+            dialog.show();
+        }
+        else {
+            finish();
         }
     }
 }

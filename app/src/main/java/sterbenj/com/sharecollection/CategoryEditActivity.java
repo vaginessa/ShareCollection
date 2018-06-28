@@ -1,7 +1,10 @@
 package sterbenj.com.sharecollection;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.service.quicksettings.Tile;
 import android.support.design.widget.TextInputEditText;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.Toolbar;
@@ -21,6 +24,34 @@ public class CategoryEditActivity extends BaseActivity {
     private Toolbar toolbar;
     private String packageName = null;
     private Intent intent;
+    private cacheData cache = new cacheData("", "");
+
+    //缓存原有数据
+    static class cacheData{
+        String Title;
+        String Context;
+
+        public cacheData(String title, String context){
+            Context = context;
+            Title = title;
+        }
+
+        public String getContext() {
+            return Context;
+        }
+
+        public String getTitle() {
+            return Title;
+        }
+
+        public void setContext(String context) {
+            Context = context;
+        }
+
+        public void setTitle(String title) {
+            Title = title;
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +76,9 @@ public class CategoryEditActivity extends BaseActivity {
             title.setText(category.getTitle());
             context.setText(category.getContext());
             packageName = category.getPackageName();
+
+            //初始化cacheData
+            cache = new cacheData(title.getText().toString(), context.getText().toString());
 
         }
 
@@ -80,7 +114,7 @@ public class CategoryEditActivity extends BaseActivity {
 
             //返回箭头按钮
             case android.R.id.home:
-                finish();
+                confirmBack();
                 break;
             default:
         }
@@ -133,6 +167,37 @@ public class CategoryEditActivity extends BaseActivity {
                 category.update(category.getId());
                 return true;
             }
+        }
+    }
+
+    //确认是否返回
+    public void confirmBack(){
+        if (!(cache.getContext().equals(context.getText().toString()) && cache.getTitle().equals(title.getText().toString()))){
+            AlertDialog.Builder dialog = new AlertDialog.Builder(CategoryEditActivity.this);
+            dialog.setMessage("内容已经更改，是否保存？");
+            dialog.setCancelable(true);
+            dialog.setPositiveButton("保存", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    if(saveCategory(category)){
+                        Intent newIntent = new Intent();
+                        newIntent.putExtra("packageName", category.getPackageName());
+                        setResult(RESULT_OK, newIntent);
+                        Toast.makeText(CategoryEditActivity.this, "保存成功", Toast.LENGTH_SHORT).show();
+                        finish();
+                    }
+                }
+            });
+            dialog.setNegativeButton("不保存", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    finish();
+                }
+            });
+            dialog.show();
+        }
+        else{
+            finish();
         }
     }
 
