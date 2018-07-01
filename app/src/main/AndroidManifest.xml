@@ -1,7 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="sterbenj.com.sharecollection">
 
-    <uses-permission android:name="android.permission.INTERNET"></uses-permission>
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
     <application
         android:name="org.litepal.LitePalApplication"
@@ -21,33 +23,42 @@
             </intent-filter>
         </activity>
         <activity
-            android:windowSoftInputMode="adjustPan"
             android:name=".CategoryEditActivity"
             android:label="编辑"
-            android:theme="@style/white_transStat" />
-        <activity android:name=".SettingActivity"
+            android:theme="@style/white_transStat"
+            android:windowSoftInputMode="adjustPan" />
+        <activity
+            android:name=".SettingActivity"
             android:label="设置"
-            android:theme="@style/white_transStat">
-        </activity>
+            android:theme="@style/white_transStat" />
         <activity
             android:name=".ApplistActivity"
-            android:theme="@style/white_transStat"
-            android:label="应用列表">
-        </activity>
+            android:label="应用列表"
+            android:theme="@style/white_transStat" />
         <activity
             android:name=".CollectionItemListActivity"
-            android:theme="@style/white_transStat">
-        </activity>
+            android:theme="@style/white_transStat" />
         <activity
             android:name=".AcceptCollectionitemAndEditActivity"
-            android:theme="@style/white_transStat"
-            android:label="全局分享收藏">
+            android:label="全局分享收藏"
+            android:theme="@style/white_transStat">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
+
                 <category android:name="android.intent.category.DEFAULT" />
+
                 <data android:mimeType="text/plain" />
             </intent-filter>
         </activity>
 
+        <service
+            android:name=".PasteListenerService"
+            android:enabled="true"
+            android:exported="true" />
+        <service
+            android:name=".FloatButtonService"
+            android:enabled="true"
+            android:exported="true"></service>
     </application>
+
 </manifest>

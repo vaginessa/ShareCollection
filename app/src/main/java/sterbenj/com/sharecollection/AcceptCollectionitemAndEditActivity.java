@@ -287,6 +287,16 @@ public class AcceptCollectionitemAndEditActivity extends BaseActivity {
             SpinnerIndex = intent.getIntExtra("SpinnerIndex", -1);
         }
 
+        //来自剪贴板
+        else if (intent.getAction().equals("FROM_PASTE")){
+            hasFinishImage = false;
+            if (intent.getStringExtra("Paste") != null){
+                uri = intent.getStringExtra("Paste");
+                title = "233";
+                thread.start();
+            }
+        }
+
         //外部应用数据
         else{
             hasFinishImage = false;

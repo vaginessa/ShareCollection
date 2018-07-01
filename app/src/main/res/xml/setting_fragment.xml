@@ -11,4 +11,15 @@
             android:defaultValue="@string/theme_default_value"/>
     </PreferenceCategory>
 
+    <PreferenceCategory
+        android:title="功能">
+        <SwitchPreference
+            android:key="key_paste_listener_switch"
+            android:title="剪贴板监听"
+            android:summary="关闭"
+            android:summaryOff="关闭"
+            android:summaryOn="开启" />
+
+    </PreferenceCategory>
+
 </PreferenceScreen>

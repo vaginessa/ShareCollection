@@ -13,6 +13,7 @@ import android.view.WindowManager;
 public class BaseActivity extends AppCompatActivity {
 
     public static int sTheme;
+    public static boolean pasteListenerIsRun;
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
@@ -21,8 +22,16 @@ public class BaseActivity extends AppCompatActivity {
             localLayoutParams.flags = (WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS | localLayoutParams.flags);
         }
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+
         sTheme = sharedPreferences.getInt("themeID", R.style.white_transStat);
+        pasteListenerIsRun = sharedPreferences.getBoolean("PasteSwitchIsChecked", false);
+
         this.setTheme(sTheme);
+
+        if (pasteListenerIsRun){
+            //TODO 233
+        }
+
         super.onCreate(savedInstanceState);
         ActivityControl.addActivity(this);
     }
