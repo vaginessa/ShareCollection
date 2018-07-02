@@ -1,5 +1,6 @@
 package sterbenj.com.sharecollection;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
@@ -27,6 +28,11 @@ public class BaseActivity extends AppCompatActivity {
         pasteListenerIsRun = sharedPreferences.getBoolean("PasteSwitchIsChecked", false);
 
         this.setTheme(sTheme);
+
+        if (BaseActivity.pasteListenerIsRun){
+            final Intent serviceStart = new Intent(getApplication(), PasteListenerService.class);
+            startService(serviceStart);
+        }
 
         if (pasteListenerIsRun){
             //TODO 233

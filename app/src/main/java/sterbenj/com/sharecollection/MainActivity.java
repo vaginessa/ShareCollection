@@ -63,10 +63,6 @@ public class MainActivity extends BaseActivity
     protected void onCreate(Bundle savedInstanceState) {
         instance = this;
         super.onCreate(savedInstanceState);
-        if (BaseActivity.pasteListenerIsRun){
-            final Intent serviceStart = new Intent(getApplication(), PasteListenerService.class);
-            startService(serviceStart);
-        }
 
         setContentView(R.layout.activity_main);
 

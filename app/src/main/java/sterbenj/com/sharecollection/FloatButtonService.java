@@ -32,7 +32,7 @@ public class FloatButtonService extends Service {
     private WindowManager mWindowManager;
     private ImageButton mFloatView;
     private CharSequence paste = "Paste";
-    private String ID = "Paste";
+    private String ID = "0";
 
 
     @Override
@@ -68,7 +68,7 @@ public class FloatButtonService extends Service {
         };
         timer.schedule(timerTask, 3000);
 
-        return START_STICKY;
+        return START_NOT_STICKY;
     }
 
     private void createFloatView() {
@@ -87,10 +87,10 @@ public class FloatButtonService extends Service {
         //设置浮动窗口不可聚焦（实现操作除浮动窗口外的其他可见窗口的操作）
         wmParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
         //调整悬浮窗显示的停靠位置为左侧置顶
-        wmParams.gravity = Gravity.LEFT | Gravity.TOP;
+        wmParams.gravity = Gravity.RIGHT | Gravity.CENTER_VERTICAL;
         // 以屏幕左上角为原点，设置x、y初始值，相对于gravity
         wmParams.x = 0;
-        wmParams.y = 152;
+        wmParams.y = -50;
         //设置悬浮窗口长宽数据
         wmParams.width = WindowManager.LayoutParams.WRAP_CONTENT;
         wmParams.height = WindowManager.LayoutParams.WRAP_CONTENT;
@@ -119,6 +119,10 @@ public class FloatButtonService extends Service {
     public void onDestroy() {
         super.onDestroy();
         mWindowManager.removeView(mFloatLayout);
+        if (BaseActivity.pasteListenerIsRun){
+            final Intent serviceStart = new Intent(getApplication(), PasteListenerService.class);
+            startService(serviceStart);
+        }
         Log.d(TAG, "onDestroy: ");
     }
     @Override

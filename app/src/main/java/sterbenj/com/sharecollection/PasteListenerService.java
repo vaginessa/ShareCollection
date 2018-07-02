@@ -19,13 +19,15 @@ public class PasteListenerService extends Service {
     public void onCreate() {
         super.onCreate();
         manager = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
-        Log.i(TAG, "onCreate");
+        registerClipEvents();
+        Log.i(TAG, "onCreate1");
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        registerClipEvents();
-        return super.onStartCommand(intent, flags, startId);
+
+        Log.i(TAG, "onStartCommand: 1111111111111111");
+        return START_STICKY;
     }
 
     @Override
@@ -35,6 +37,11 @@ public class PasteListenerService extends Service {
         if (listener != null && manager != null){
             manager.removePrimaryClipChangedListener(listener);
         }
+        if (BaseActivity.pasteListenerIsRun){
+            final Intent serviceStart = new Intent(getApplication(), PasteListenerService.class);
+            startService(serviceStart);
+        }
+
     }
 
     @Override
