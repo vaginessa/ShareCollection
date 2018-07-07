@@ -148,6 +148,15 @@ public class AcceptCollectionitemAndEditActivity extends BaseActivity {
                     }
                 }
 
+                //酷安
+                else if (uri.indexOf("www.coolapk.com") != -1){
+                    images = document.getElementsByTag("img");
+                    ImageUri = images.select("[src$=under_logo.png]");
+                    if (images.size() != 0){
+                        single = ImageUri.first().attr("abs:src");
+                    }
+                }
+
                 //默认情况
                 else{
                     //获取所有img标签数据

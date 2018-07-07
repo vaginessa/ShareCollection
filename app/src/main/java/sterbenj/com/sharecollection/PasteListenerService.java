@@ -37,11 +37,6 @@ public class PasteListenerService extends Service {
         if (listener != null && manager != null){
             manager.removePrimaryClipChangedListener(listener);
         }
-        if (BaseActivity.pasteListenerIsRun){
-            final Intent serviceStart = new Intent(getApplication(), PasteListenerService.class);
-            startService(serviceStart);
-        }
-
     }
 
     @Override

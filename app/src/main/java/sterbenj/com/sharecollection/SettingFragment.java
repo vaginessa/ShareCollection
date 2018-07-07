@@ -47,11 +47,13 @@ public class SettingFragment extends PreferenceFragment {
                         if (value.equals("0")){
                             editor.putInt("themeID", R.style.white_transStat);
                             editor.apply();
+                            SettingActivity.IS_FIRST_CREATE = false;
                             ActivityControl.recreateAll();
                         }
                         if (value.equals("1")){
                             editor.putInt("themeID", R.style.Dark);
                             editor.apply();
+                            SettingActivity.IS_FIRST_CREATE = false;
                             ActivityControl.recreateAll();
                         }
 

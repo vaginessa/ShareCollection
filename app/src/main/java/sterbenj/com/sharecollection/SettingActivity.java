@@ -1,5 +1,6 @@
 package sterbenj.com.sharecollection;
 
+import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Intent;
@@ -8,6 +9,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.MenuItem;
 import android.widget.Toast;
 
@@ -15,6 +17,10 @@ public class SettingActivity extends BaseActivity {
 
     public static SettingActivity settingActivity;
     private Toolbar toolbar;
+    private FragmentManager fragmentManager;
+    private FragmentTransaction fragmentTransaction;
+    private SettingFragment settingFragment;
+    static boolean IS_FIRST_CREATE = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,11 +42,20 @@ public class SettingActivity extends BaseActivity {
     }
 
     public void initPreferenceFragment(){
-        FragmentManager fragmentManager = getFragmentManager();
-        FragmentTransaction transaction = fragmentManager.beginTransaction();
-        SettingFragment settingFragment = new SettingFragment();
-        transaction.add(R.id.fragment_setting, settingFragment);
-        transaction.commit();
+        Log.d("debug_initPre", "initPreferenceFragment: ");
+        fragmentManager = getFragmentManager();
+        fragmentTransaction = fragmentManager.beginTransaction();
+        settingFragment = new SettingFragment();
+
+        //第一次创建add，更改主题后replace
+        if (IS_FIRST_CREATE){
+            fragmentTransaction.add(R.id.fragment_setting, settingFragment);
+        }
+        else{
+            fragmentTransaction.replace(R.id.fragment_setting, settingFragment);
+        }
+
+        fragmentTransaction.commit();
     }
 
     public void initToolbar(){
