@@ -8,6 +8,8 @@ import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.WindowManager;
 
+import cn.bmob.v3.Bmob;
+
 /**
  * XJB Created by 野良人 on 2018/5/6.
  */
@@ -18,6 +20,11 @@ public class BaseActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
+
+        //初始化Bmob服务
+        //Bmob.initialize(this, "b8635d533cc781d63127bf5533d0a692");
+
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             WindowManager.LayoutParams localLayoutParams = getWindow().getAttributes();
             localLayoutParams.flags = (WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS | localLayoutParams.flags);

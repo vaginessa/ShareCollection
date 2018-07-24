@@ -7,6 +7,7 @@ import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
+import android.preference.PreferenceScreen;
 import android.preference.SwitchPreference;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,12 +21,28 @@ public class SettingFragment extends PreferenceFragment {
     private SharedPreferences.Editor editor;
     private ListPreference theme;
     private SwitchPreference pasteListener;
+    private PreferenceScreen login;
+    private SwitchPreference cloudSync;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.setting_fragment);
         initSetting();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        //Todo:判断是否登入
+        String accountTemp = PreferenceManager.getDefaultSharedPreferences(
+                getActivity().getApplicationContext()).getString("AccountHasLogin", null);
+        if (accountTemp != null){
+            login.setSummary(accountTemp);
+        }
+        else{
+            login.setSummary("未登入");
+        }
     }
 
     @Override
@@ -46,13 +63,13 @@ public class SettingFragment extends PreferenceFragment {
                         //主题变更
                         if (value.equals("0")){
                             editor.putInt("themeID", R.style.white_transStat);
-                            editor.apply();
+                            editor.commit();
                             SettingActivity.IS_FIRST_CREATE = false;
                             ActivityControl.recreateAll();
                         }
                         if (value.equals("1")){
                             editor.putInt("themeID", R.style.Dark);
-                            editor.apply();
+                            editor.commit();
                             SettingActivity.IS_FIRST_CREATE = false;
                             ActivityControl.recreateAll();
                         }
@@ -63,6 +80,7 @@ public class SettingFragment extends PreferenceFragment {
             }
         });
 
+        //剪贴板监听开关
         pasteListener.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
@@ -74,7 +92,7 @@ public class SettingFragment extends PreferenceFragment {
                         final Intent serviceStart = new Intent(SettingActivity.settingActivity.getApplication(), PasteListenerService.class);
                         SettingActivity.settingActivity.stopService(serviceStart);
                         editor.putBoolean("PasteSwitchIsChecked", false);
-                        editor.apply();
+                        editor.commit();
                     }
                     else{
                         switchPreference.setChecked(true);
@@ -82,10 +100,33 @@ public class SettingFragment extends PreferenceFragment {
                         final Intent serviceStart = new Intent(SettingActivity.settingActivity.getApplication(), PasteListenerService.class);
                         SettingActivity.settingActivity.startService(serviceStart);
                         editor.putBoolean("PasteSwitchIsChecked", true);
-                        editor.apply();
+                        editor.commit();
                     }
                 }
                 return false;
+            }
+        });
+
+        //账户操作
+        login.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+            @Override
+            public boolean onPreferenceClick(Preference preference) {
+
+                //判断是否有账户登入
+                String accountTemp = PreferenceManager.getDefaultSharedPreferences(
+                        getActivity().getApplicationContext()).getString("AccountHasLogin", null);
+                if (accountTemp != null){
+
+                    //跳转到个人页面
+                    Intent intent = new Intent(getActivity(), AccountCenterActivity.class);
+                    startActivity(intent);
+                    return true;
+                }
+
+                //跳转至登陆页面
+                Intent intent = new Intent(getActivity().getApplicationContext(), LoginActivity.class);
+                startActivity(intent);
+                return true;
             }
         });
 
@@ -104,6 +145,11 @@ public class SettingFragment extends PreferenceFragment {
 
         //初始化paste_listener_switch
         pasteListener = (SwitchPreference)findPreference("key_paste_listener_switch");
-        pasteListener.setSummary(pasteListener.getSummary());
+
+        //初始化login
+        login = (PreferenceScreen)findPreference("key_login");
+
+        //初始化cloud
+        cloudSync = (SwitchPreference)findPreference("key_cloud_switch");
     }
 }

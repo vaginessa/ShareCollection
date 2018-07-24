@@ -301,7 +301,7 @@ public class AcceptCollectionitemAndEditActivity extends BaseActivity {
             hasFinishImage = false;
             if (intent.getStringExtra("Paste") != null){
                 uri = intent.getStringExtra("Paste");
-                title = "233";
+                title = "";
                 thread.start();
             }
         }

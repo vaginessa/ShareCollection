@@ -1,21 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <PreferenceCategory
-        android:title="主题">
-        <ListPreference
-            android:title="当前主题"
-            android:dialogTitle="主题"
-            android:key="key_theme_list"
-            android:entries="@array/theme"
-            android:entryValues="@array/theme_index"
-            android:defaultValue="@string/theme_default_value"/>
-    </PreferenceCategory>
+
+    <PreferenceScreen
+        android:title="账号"
+        android:summary="未登入"
+        android:key="key_login">
+    </PreferenceScreen>
+
+    <ListPreference
+        android:title="当前主题"
+        android:dialogTitle="主题"
+        android:key="key_theme_list"
+        android:entries="@array/theme"
+        android:entryValues="@array/theme_index"
+        android:defaultValue="@string/theme_default_value"/>
 
     <PreferenceCategory
         android:title="功能">
         <SwitchPreference
             android:key="key_paste_listener_switch"
             android:title="剪贴板监听"
+            android:summary="关闭"
+            android:summaryOff="关闭"
+            android:summaryOn="开启" />
+
+        <SwitchPreference
+            android:key="key_cloud_switch"
+            android:title="云同步"
             android:summary="关闭"
             android:summaryOff="关闭"
             android:summaryOn="开启" />
