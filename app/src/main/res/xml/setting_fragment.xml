@@ -24,13 +24,6 @@
             android:summaryOff="关闭"
             android:summaryOn="开启" />
 
-        <SwitchPreference
-            android:key="key_cloud_switch"
-            android:title="云同步"
-            android:summary="关闭"
-            android:summaryOff="关闭"
-            android:summaryOn="开启" />
-
     </PreferenceCategory>
 
 </PreferenceScreen>

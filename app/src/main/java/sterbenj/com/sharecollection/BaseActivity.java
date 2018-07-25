@@ -22,7 +22,7 @@ public class BaseActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState){
 
         //初始化Bmob服务
-        //Bmob.initialize(this, "b8635d533cc781d63127bf5533d0a692");
+        Bmob.initialize(this, "b8635d533cc781d63127bf5533d0a692");
 
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {

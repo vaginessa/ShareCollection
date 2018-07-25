@@ -30,10 +30,10 @@ public class ChangePasswordActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_change_password);
 
-        //密码
+        //旧密码
         passwordLayout = (TextInputLayout)findViewById(R.id.changepassword_password_layout);
         password = (TextInputEditText) passwordLayout.getEditText();
-        //密码监听
+        //旧密码监听
         password.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -43,12 +43,11 @@ public class ChangePasswordActivity extends BaseActivity {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
 
-                //监听重复输入是否相同
                 passwordAgainStr = passwordAgain.getText().toString();
                 if (!passwordAgainStr.isEmpty()){
-                    if (!s.toString().equals(passwordAgainStr)){
+                    if (s.toString().equals(passwordAgainStr)){
                         passwordAgainLayout.setErrorEnabled(true);
-                        passwordAgainLayout.setError("两次输入密码不同");
+                        passwordAgainLayout.setError("新旧密码不能相同！");
                     }
                     else{
                         passwordAgainLayout.setErrorEnabled(false);
@@ -79,10 +78,10 @@ public class ChangePasswordActivity extends BaseActivity {
             }
         });
 
-        //确认密码
+        //新密码
         passwordAgainLayout = (TextInputLayout)findViewById(R.id.changepassword_passwordAgain_layout);
         passwordAgain = (TextInputEditText) passwordAgainLayout.getEditText();
-        //确认密码监听
+        //新密码监听
         passwordAgain.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -95,9 +94,9 @@ public class ChangePasswordActivity extends BaseActivity {
                 //监听重复输入是否相同
                 passwordStr = password.getText().toString();
                 if (!s.toString().isEmpty()){
-                    if (!s.toString().equals(passwordStr)){
+                    if (s.toString().equals(passwordStr)){
                         passwordAgainLayout.setErrorEnabled(true);
-                        passwordAgainLayout.setError("两次输入密码不同");
+                        passwordAgainLayout.setError("新旧密码不能相同！");
                     }
                     else{
                         passwordAgainLayout.setErrorEnabled(false);
@@ -144,7 +143,7 @@ public class ChangePasswordActivity extends BaseActivity {
         passwordAgainStr = passwordAgain.getText().toString();
         if (passwordStr.isEmpty() || passwordAgainStr.isEmpty()
                 || passwordStr.length() < 8 || passwordStr.length() > 16
-                || !passwordAgainStr.equals(passwordStr)){
+                || passwordAgainStr.equals(passwordStr)){
             return false;
         }
         else{
@@ -154,10 +153,7 @@ public class ChangePasswordActivity extends BaseActivity {
 
     //修改密码
     private Boolean changePassword(){
-        BmobUser newBmobUser = new BmobUser();
-        newBmobUser.setPassword(passwordStr);
-        BmobUser bmobUser = BmobUser.getCurrentUser(User.class);
-        newBmobUser.update(bmobUser.getObjectId(), new UpdateListener() {
+       BmobUser.updateCurrentUserPassword(passwordStr, passwordAgainStr, new UpdateListener() {
             @Override
             public void done(BmobException e) {
                 if (e == null){

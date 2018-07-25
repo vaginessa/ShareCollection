@@ -22,7 +22,6 @@ public class SettingFragment extends PreferenceFragment {
     private ListPreference theme;
     private SwitchPreference pasteListener;
     private PreferenceScreen login;
-    private SwitchPreference cloudSync;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -34,7 +33,7 @@ public class SettingFragment extends PreferenceFragment {
     @Override
     public void onResume() {
         super.onResume();
-        //Todo:判断是否登入
+        //判断是否登入
         String accountTemp = PreferenceManager.getDefaultSharedPreferences(
                 getActivity().getApplicationContext()).getString("AccountHasLogin", null);
         if (accountTemp != null){
@@ -148,8 +147,5 @@ public class SettingFragment extends PreferenceFragment {
 
         //初始化login
         login = (PreferenceScreen)findPreference("key_login");
-
-        //初始化cloud
-        cloudSync = (SwitchPreference)findPreference("key_cloud_switch");
     }
 }

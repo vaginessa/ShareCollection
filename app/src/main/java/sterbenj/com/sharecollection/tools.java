@@ -1,11 +1,14 @@
 package sterbenj.com.sharecollection;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.PixelFormat;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 
 import java.io.ByteArrayOutputStream;
 
@@ -40,5 +43,18 @@ public class tools {
         Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
         Drawable drawable = new BitmapDrawable(bitmap);
         return drawable;
+    }
+
+    //判断是否有网络连接
+    public static boolean isNetworkConnected(Context context) {
+        if (context != null) {
+            ConnectivityManager mConnectivityManager = (ConnectivityManager) context
+                    .getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo mNetworkInfo = mConnectivityManager.getActiveNetworkInfo();
+            if (mNetworkInfo != null) {
+                return mNetworkInfo.isAvailable();
+            }
+        }
+        return false;
     }
 }
