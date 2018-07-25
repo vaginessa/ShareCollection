@@ -44,7 +44,9 @@
 -keep class * extends cn.bmob.v3.BmobUser {
     *;
 }
+-keep class sterbenj.com.sharecollection.BmobCategory{*;}
 -keep class sterbenj.com.sharecollection.User{*;}
+-keep class sterbenj.com.sharecollection.BmobCollectionItem{*;}
 
 # keep BmobPush
 -dontwarn  cn.bmob.push.**

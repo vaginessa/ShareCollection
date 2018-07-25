@@ -405,13 +405,14 @@ public class MainActivity extends BaseActivity
             //Category表
             //查找用户云BmobCategory所有条目
             BmobQuery<BmobCategory> query1 = new BmobQuery<BmobCategory>();
-            query1.addWhereEqualTo("UserId", BmobUser.getCurrentUser().getObjectId());
+            query1.addWhereEqualTo("UserId", BmobUser.getCurrentUser(User.class).getObjectId());
             query1.setLimit(500);
             query1.findObjects(new FindListener<BmobCategory>() {
                 @Override
                 public void done(List<BmobCategory> list, BmobException e) {
                     Log.d(TAG, "done: "+ list.size());
                     if (e == null){
+                        Log.d(TAG, "done: step1");
                         deleteBmobCategory(list);
                     }
                     else{
@@ -437,6 +438,7 @@ public class MainActivity extends BaseActivity
             @Override
             public void done(List<BatchResult> list, BmobException e) {
 
+                Log.d(TAG, "done: step2");
                 //删除原有数据成功才同步上去
                 if (e == null){
                     uploadBmobCategory();
@@ -458,39 +460,46 @@ public class MainActivity extends BaseActivity
         List<Category> categories = LitePal.findAll(Category.class);
         categories.remove(0);
         Log.d(TAG, "upload: " + categories.size());
-        for (Category category : categories){
-            Log.d(TAG, "upload: " + category.getTitle());
-            BmobCategory bmobCategory = new BmobCategory();
+        if (categories.size() > 0){
+            List<BmobObject> update = new ArrayList<BmobObject>();
+            for (Category category : categories){
+                Log.d(TAG, "upload: " + category.getTitle());
+                BmobCategory bmobCategory = new BmobCategory();
 
-            bmobCategory.setUserId(BmobUser.getCurrentUser().getObjectId());
+                bmobCategory.setUserId(BmobUser.getCurrentUser(User.class).getObjectId());
 
-            bmobCategory.setTitle(category.getTitle());
+                bmobCategory.setTitle(category.getTitle());
 
-            bmobCategory.setContext(category.getContext());
+                bmobCategory.setContext(category.getContext());
 
-            Byte[] bytes = new Byte[category.getIcon().length];
-            for (int i = 0; i < category.getIcon().length; i++){
-                bytes[i] = category.getIcon()[i];
+                Byte[] bytes = new Byte[category.getIcon().length];
+                for (int i = 0; i < category.getIcon().length; i++){
+                    bytes[i] = category.getIcon()[i];
+                }
+                bmobCategory.setIcon(bytes);
+
+                bmobCategory.setPackageName(category.getPackageName());
+
+                update.add(bmobCategory);
             }
-            bmobCategory.setIcon(bytes);
-
-            bmobCategory.setPackageName(category.getPackageName());
-
-            bmobCategory.save(new SaveListener<String>() {
+            new BmobBatch().insertBatch(update).doBatch(new QueryListListener<BatchResult>() {
                 @Override
-                public void done(String s, BmobException e) {
+                public void done(List<BatchResult> list, BmobException e) {
                     if (e == null){
-
+                        Log.d(TAG, "done: setp3-1");
+                        searchBmobCollectionItem_up();
                     }
                     else{
-                        progressDialog.dismiss();
-                        Log.d(TAG, "done: 222222222222222");
                         Toast.makeText(getApplicationContext(), "上传到云端失败", Toast.LENGTH_SHORT).show();
                     }
                 }
             });
         }
-        searchBmobCollectionItem_up();
+        else{
+            Log.d(TAG, "done: setp3-2");
+            searchBmobCollectionItem_up();
+        }
+
     }
 
     //CollectionItem表
@@ -498,12 +507,13 @@ public class MainActivity extends BaseActivity
 
         //查找用户云BmobCollectionItem所有条目
         BmobQuery<BmobCollectionItem> query2 = new BmobQuery<BmobCollectionItem>();
-        query2.addWhereEqualTo("UserId", BmobUser.getCurrentUser().getObjectId());
+        query2.addWhereEqualTo("UserId", BmobUser.getCurrentUser(User.class).getObjectId());
         query2.setLimit(500);
         query2.findObjects(new FindListener<BmobCollectionItem>() {
             @Override
             public void done(List<BmobCollectionItem> list, BmobException e) {
                 if (e == null){
+                    Log.d(TAG, "done: step4");
                     deleteBmobCollectionItem(list);
                 }
                 else{
@@ -525,6 +535,7 @@ public class MainActivity extends BaseActivity
 
                 //删除原有数据成功才同步上去
                 if (e == null){
+                    Log.d(TAG, "done: step5");
                     uploadBmobCollectionItem();
                 }
 
@@ -542,40 +553,51 @@ public class MainActivity extends BaseActivity
     //上传BmobCollectionItem数据
     private void uploadBmobCollectionItem(){
         List<CollectionItem> collectionItems = LitePal.findAll(CollectionItem.class);
-        for (CollectionItem collectionItem : collectionItems){
-            BmobCollectionItem bmobCollectionItem = new BmobCollectionItem();
+        if (collectionItems.size() > 0){
+            List<BmobObject> update = new ArrayList<BmobObject>();
+            Log.d(TAG, "uploadBmobCollectionItem: "+collectionItems.size());
+            for (CollectionItem collectionItem : collectionItems){
+                BmobCollectionItem bmobCollectionItem = new BmobCollectionItem();
 
-            bmobCollectionItem.setUserId(BmobUser.getCurrentUser().getObjectId());
+                bmobCollectionItem.setUserId(BmobUser.getCurrentUser(User.class).getObjectId());
 
-            bmobCollectionItem.setTitle(collectionItem.getTitle());
+                bmobCollectionItem.setTitle(collectionItem.getTitle());
 
-            bmobCollectionItem.setContext(collectionItem.getContext());
+                bmobCollectionItem.setContext(collectionItem.getContext());
 
-            bmobCollectionItem.setmUri(collectionItem.getmUri());
+                bmobCollectionItem.setmUri(collectionItem.getmUri());
 
-            bmobCollectionItem.setParentCategory(collectionItem.getParentCategory());
+                bmobCollectionItem.setParentCategory(collectionItem.getParentCategory());
 
-            Byte[] bytes = new Byte[collectionItem.getImage().length];
-            for (int i = 0; i < collectionItem.getImage().length; i++){
-                bytes[i] = collectionItem.getImage()[i];
+                Byte[] bytes = new Byte[collectionItem.getImage().length];
+                for (int i = 0; i < collectionItem.getImage().length; i++){
+                    bytes[i] = collectionItem.getImage()[i];
+                }
+                bmobCollectionItem.setImage(bytes);
+
+                update.add(bmobCollectionItem);
             }
-            bmobCollectionItem.setImage(bytes);
-
-            bmobCollectionItem.save(new SaveListener<String>() {
+            new BmobBatch().insertBatch(update).doBatch(new QueryListListener<BatchResult>() {
                 @Override
-                public void done(String s, BmobException e) {
+                public void done(List<BatchResult> list, BmobException e) {
                     if (e == null){
+                        Log.d(TAG, "done: step6-1");
                         progressDialog.dismiss();
                         Toast.makeText(getApplicationContext(), "上传到云端成功", Toast.LENGTH_SHORT).show();
                     }
                     else{
                         progressDialog.dismiss();
-                        Log.d(TAG, "done: 5555555555555555555");
                         Toast.makeText(getApplicationContext(), "上传到云端失败", Toast.LENGTH_SHORT).show();
                     }
                 }
             });
         }
+        else{
+            Log.d(TAG, "uploadBmobCollectionItem: step6-2");
+            progressDialog.dismiss();
+            Toast.makeText(getApplicationContext(), "上传到云端成功", Toast.LENGTH_SHORT).show();
+        }
+
     }
 
     /*
@@ -596,23 +618,25 @@ public class MainActivity extends BaseActivity
         progressDialog.show();
 
         if (tools.isNetworkConnected(getApplicationContext())){
-            //删除本地Category
-            LitePal.deleteAll(Category.class, "PackageName != ?", "全部收藏");
 
             //Category表
             //查找用户云BmobCategory所有条目
             BmobQuery<BmobCategory> query1 = new BmobQuery<BmobCategory>();
-            query1.addWhereEqualTo("UserId", BmobUser.getCurrentUser().getObjectId());
+            query1.addWhereEqualTo("UserId", BmobUser.getCurrentUser(User.class).getObjectId());
             query1.setLimit(500);
             query1.findObjects(new FindListener<BmobCategory>() {
                 @Override
                 public void done(List<BmobCategory> list, BmobException e) {
                     if (e == null){
+                        //删除本地Category
+                        LitePal.deleteAll(Category.class, "PackageName != ?", "全部收藏");
+
                         downloadBmobCategory(list);
                     }
                     else{
                         progressDialog.dismiss();
-                        Toast.makeText(getApplicationContext(), "同步至本机失败", Toast.LENGTH_SHORT);
+                        Toast.makeText(getApplicationContext(), "同步至本机失败", Toast.LENGTH_SHORT).show();
+                        Log.d(TAG, "done: aaaaaaaaaaaaaaaaaa" + e);
                     }
                 }
             });
@@ -620,6 +644,7 @@ public class MainActivity extends BaseActivity
         }
         else{
             progressDialog.dismiss();
+            Log.d(TAG, "download: llllllllllllllllllll");
             Toast.makeText(getApplicationContext(), "没有网络连接", Toast.LENGTH_SHORT).show();
         }
     }
@@ -627,6 +652,8 @@ public class MainActivity extends BaseActivity
     //把云BmobCategory数据同步到本地Category
     private void downloadBmobCategory(List<BmobCategory> list){
         for (BmobCategory bmobCategory : list){
+
+            Log.d(TAG, "downloadBmobCategory: " + list.size());
             Category category = new Category();
 
             category.setTitle(bmobCategory.getTitle());
@@ -642,15 +669,16 @@ public class MainActivity extends BaseActivity
             category.setIcon(bytes);
 
             category.save();
-            list.clear();
         }
+
+        list.clear();
 
         searchBmobCollectionItem_down();
     }
 
     //CollectionItem表
     private void searchBmobCollectionItem_down(){
-        //查找用户云BmobCollectionItem所有条目
+        //        //查找用户云BmobCollectionItem所有条目
         BmobQuery<BmobCollectionItem> query2 = new BmobQuery<BmobCollectionItem>();
         query2.addWhereEqualTo("UserId", BmobUser.getCurrentUser().getObjectId());
         query2.setLimit(500);
@@ -661,6 +689,7 @@ public class MainActivity extends BaseActivity
                     downloadBmobCollectionItem(list);
                 }
                 else{
+                    Log.d(TAG, "done: bbbbbbbbbbbbbbbbbb");
                     progressDialog.dismiss();
                     Toast.makeText(getApplicationContext(), "同步至本机失败", Toast.LENGTH_SHORT).show();
                 }
@@ -689,8 +718,8 @@ public class MainActivity extends BaseActivity
             collectionItem.setImage(bytes);
 
             collectionItem.save();
-            list.clear();
         }
+        list.clear();
 
         //刷新列表
         categoryList.clear();
@@ -698,6 +727,7 @@ public class MainActivity extends BaseActivity
         categoryList.addAll(newList);
         collectionsAdapter.notifyDataSetChanged();
 
+        Log.d(TAG, "downloadBmobCollectionItem: cccccccccccccccccc");
         progressDialog.dismiss();
 
         Toast.makeText(getApplicationContext(), "同步至本机成功", Toast.LENGTH_SHORT).show();
