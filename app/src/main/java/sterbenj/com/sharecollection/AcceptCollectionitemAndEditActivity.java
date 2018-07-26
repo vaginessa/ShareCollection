@@ -157,6 +157,23 @@ public class AcceptCollectionitemAndEditActivity extends BaseActivity {
                     }
                 }
 
+                //微博
+                else if (uri.indexOf("m.weibo.cn") != -1){
+                    images = document.getElementsByTag("script");
+                    String[] jsData = images.get(1).data().toString().split("var");
+                    for (String str : jsData){
+                        if (str.contains("$render_data")){
+                            String[] ineed = str.split("\",");
+                            for (String str2 : ineed){
+                                if (str2.trim().contains("original_pic")){
+                                    Log.d("MainActivity233", "run: "+ str2.trim() + "  " + str2);
+                                    single = str2.substring(str2.indexOf("http"));
+                                }
+                            }
+                        }
+                    }
+                }
+
                 //默认情况
                 else{
                     //获取所有img标签数据
