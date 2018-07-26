@@ -157,7 +157,7 @@ public class AcceptCollectionitemAndEditActivity extends BaseActivity {
                     }
                 }
 
-                //微博
+                //普通微博
                 else if (uri.indexOf("m.weibo.cn") != -1){
                     images = document.getElementsByTag("script");
                     String[] jsData = images.get(1).data().toString().split("var");
@@ -168,6 +168,39 @@ public class AcceptCollectionitemAndEditActivity extends BaseActivity {
                                 if (str2.trim().contains("original_pic")){
                                     Log.d("MainActivity233", "run: "+ str2.trim() + "  " + str2);
                                     single = str2.substring(str2.indexOf("http"));
+                                }
+                            }
+                        }
+                    }
+                }
+
+                //微博图文
+                else if (uri.indexOf("media.weibo.cn") != -1){
+                    images = document.getElementsByTag("script");
+                    String[] jsData = images.get(1).data().toString().split("var");
+                    for (String str : jsData){
+                        if (str.contains("$render_data")){
+
+                            //图片
+                            String[] ineed = str.split("\"|\":");
+                            for (String str2 : ineed){
+                                if (str2.trim().contains(".jpg")){
+                                    Log.d("MainActivity233", "run: "+ str2.trim() + "  " + str2);
+                                    single = str2.trim();
+                                    break;
+                                }
+                            }
+
+                            //标题&&内容
+                            String[] ineed1 = str.split("\",");
+                            for (String str2 : ineed1){
+                                if (str2.trim().contains("\"title\":")){
+                                    Log.d("MainActivity233", "run: "+ str2.trim() + "  " + str2);
+                                    title = str2.trim().split("\"title\": \"")[1];
+                                }
+                                if (str2.trim().contains("\"summary\":")){
+                                    Log.d("MainActivity233", "run: "+ str2.trim() + "  " + str2);
+                                    context = str2.trim().split("\"summary\": \"")[1];
                                 }
                             }
                         }

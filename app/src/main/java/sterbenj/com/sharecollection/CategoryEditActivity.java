@@ -154,7 +154,6 @@ public class CategoryEditActivity extends BaseActivity {
             else {
                 category.setTitle(title.getText().toString());
                 category.setContext(context.getText().toString());
-                category.setPackageName(title.getText().toString());
                 category.setIcon(tools.DrawableToByteArray(ContextCompat.getDrawable(this, R.drawable.ic_folder_black_24dp)));
                 category.updateAll("PackageName = ?", packageName);
                 return true;
