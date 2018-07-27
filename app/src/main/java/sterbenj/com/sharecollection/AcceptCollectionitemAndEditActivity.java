@@ -3,6 +3,7 @@ package sterbenj.com.sharecollection;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.media.Image;
 import android.net.Uri;
 import android.os.Bundle;
@@ -15,6 +16,7 @@ import android.support.v7.widget.AppCompatImageView;
 import android.support.v7.widget.AppCompatSpinner;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.Toolbar;
+import android.util.ArrayMap;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -25,6 +27,9 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.drawable.GlideDrawable;
+import com.bumptech.glide.request.animation.GlideAnimation;
+import com.bumptech.glide.request.target.SimpleTarget;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -34,32 +39,43 @@ import org.litepal.LitePal;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * XJB Created by 野良人 on 2018/6/14.
  */
 public class AcceptCollectionitemAndEditActivity extends BaseActivity {
 
+    private String TAG = "ACC";
+
     private CardView cardView;
     private TextInputEditText Title;
     private String title;
     private TextInputEditText Context;
     private String context;
+
     private AppCompatImageView appCompatImageView;
     private ContentLoadingProgressBar progressBar;
     private CollectionItem collectionItem;
     private AppCompatSpinner spinner;
     private Toolbar toolbar;
+
     private String data;
     private String uri;
     private Uri mImageUri = null;
     private String PackageName;
+    private Long id;
+
     private int SpinnerIndex;
     private List<String> categoryName = new ArrayList<>();
+    private Map<String, Long> categoryData = new ArrayMap<>();
+
     private Intent intent;
     private boolean hasFinishImage;
+
     public static final int SET_IMAGE = 1;
     public static final int NO_IMAGE = 2;
+
     private cacheData cache = new cacheData("", "");
 
 
@@ -207,6 +223,18 @@ public class AcceptCollectionitemAndEditActivity extends BaseActivity {
                     }
                 }
 
+                //taptap游戏
+                else if (uri.indexOf("https://www.taptap.com/app") == 0 || uri.indexOf("www.taptap.com/app") == 0){
+                    images = document.getElementsByTag("meta");
+                    context = images.select("[name=description]").attr("content");
+                    single = images.select("[property=og:image]").attr("content");
+                }
+
+                //taptap图文
+                else if (uri.indexOf("https://www.taptap.com/story") == 0 || uri.indexOf("www.taptap.com/story") == 0){
+                    single = document.getElementsByTag("meta").select("[property=og:image]").attr("content");
+                }
+
                 //默认情况
                 else{
                     //获取所有img标签数据
@@ -288,7 +316,7 @@ public class AcceptCollectionitemAndEditActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_accept_edit_collectionitem);
 
-
+        //若没有默认分类就创建
         if(LitePal.where("PackageName = ?", "全部收藏").find(Category.class).size() == 0){
             Category category = new Category("全部收藏", tools.DrawableToByteArray(ContextCompat.getDrawable(this, R.drawable.ic_folder_black_24dp)), "全部收藏", "全部收藏");
             category.save();
@@ -314,8 +342,10 @@ public class AcceptCollectionitemAndEditActivity extends BaseActivity {
 
         //初始化spinner列表
         categoryName.clear();
+        categoryData.clear();
         for (Category category : LitePal.findAll(Category.class)){
             categoryName.add(category.getTitle());
+            categoryData.put(category.getTitle(), category.getId());
         }
 
         //获取intent信息
@@ -385,10 +415,9 @@ public class AcceptCollectionitemAndEditActivity extends BaseActivity {
                 //根据选中的Name查找类别中对应的PackageName
                 ArrayAdapter<String> adapter = (ArrayAdapter<String>) parent.getAdapter();
                 String SelectedName = adapter.getItem(position);
-                for (Category category : LitePal.where("Title = ?", SelectedName)
-                        .find(Category.class)) {
-                    PackageName = category.getPackageName();
-                }
+                id = categoryData.get(SelectedName);
+                PackageName = LitePal.find(Category.class, id).getPackageName();
+
             }
 
             @Override

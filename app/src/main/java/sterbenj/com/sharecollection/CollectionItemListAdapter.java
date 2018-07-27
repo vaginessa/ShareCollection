@@ -42,6 +42,7 @@ public class CollectionItemListAdapter extends RecyclerView.Adapter<CollectionIt
     static class ViewHolder extends RecyclerView.ViewHolder{
         CardView cardView;
         ImageButton imageButton;
+        ImageButton imageButton2;
         TextView title;
         View line;
         TextView context;
@@ -54,6 +55,7 @@ public class CollectionItemListAdapter extends RecyclerView.Adapter<CollectionIt
             super(itemView);
             cardView = (CardView)itemView.findViewById(R.id.card_view_collectionitemlist);
             imageButton = (ImageButton) itemView.findViewById(R.id.card_view_collectionitemlist_jump);
+            imageButton2 = (ImageButton) itemView.findViewById(R.id.card_view_collectionitemlist_copy);
             title = (TextView)itemView.findViewById(R.id.collectionlistitem_title);
             line = (View)itemView.findViewById(R.id.collectionlistitem_line);
             context = (TextView)itemView.findViewById(R.id.collectionlistitem_context);
@@ -121,13 +123,23 @@ public class CollectionItemListAdapter extends RecyclerView.Adapter<CollectionIt
         Log.d("+++++++++CLAD", "onBindViewHolder: ");
         holder.setData(collectionItemList.get(position), position);
 
-        //点击监听
+        //跳转点击监听
         holder.imageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Uri uri = Uri.parse(holder.uri);
                 Intent intent = new Intent(Intent.ACTION_VIEW, uri);
                 MyJumpOutRoad.JumpOut(intent);
+            }
+        });
+
+        //复制点击监听
+        holder.imageButton2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //TODO:复制
+                MyJumpOutRoad.CopyToShare(collectionItemList.get(position).getTitle()
+                + "\n" + collectionItemList.get(position).getmUri());
             }
         });
 
@@ -148,6 +160,7 @@ public class CollectionItemListAdapter extends RecyclerView.Adapter<CollectionIt
 
     public interface JumpOutRoad{
         void JumpOut(Intent intent);
+        void CopyToShare(String data);
         void onCollectionItemClick(CollectionItem collectionItem,  int position, View v, Context mContext, CheckBox checkBox);
         void onCollectionitemLongClick(View v, int position);
     }

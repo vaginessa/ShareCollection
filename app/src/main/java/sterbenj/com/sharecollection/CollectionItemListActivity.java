@@ -1,5 +1,7 @@
 package sterbenj.com.sharecollection;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -8,6 +10,7 @@ import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
+import android.content.DialogInterface.OnClickListener;
 import android.support.v7.view.ActionMode;
 import android.support.v7.widget.AppCompatImageView;
 import android.support.v7.widget.CardView;
@@ -16,13 +19,14 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
+import android.util.ArrayMap;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 
@@ -31,6 +35,7 @@ import org.litepal.LitePal;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import jp.wasabeef.glide.transformations.BlurTransformation;
@@ -44,15 +49,22 @@ public class CollectionItemListActivity extends BaseActivity {
     public Set<Integer> positionSet = new HashSet<>();
     public static CollectionItemListActivity instance;
 
-    private Toolbar toolbar;
+    private int SpinnerIndex;
     private Category category;
-    private CollapsingToolbarLayout collapsingToolbarLayout;
     private CollectionItemListAdapter adapter;
     private List<CollectionItem> collectionItemList = new ArrayList<>();
+
+    private Toolbar toolbar;
+    private CollapsingToolbarLayout collapsingToolbarLayout;
     private TextView mcontext;
     private RecyclerView recyclerView;
-    private int SpinnerIndex;
     private FloatingActionButton fab;
+
+    private List<String> categoryName = new ArrayList<>();
+    private Map<String, Long> categoryData = new ArrayMap<>();
+    private String[] categoryName_array;
+    private long id;
+    private String PackageName;
 
     @Override
     protected void onResume() {
@@ -101,12 +113,36 @@ public class CollectionItemListActivity extends BaseActivity {
             collectionItemList.addAll(newList);
         }
 
+        //初始化Dialog列表数据
+        categoryName.clear();
+        categoryData.clear();
+        int index = 0;
+        categoryName_array = new String[LitePal.findAll(Category.class).size()];
+        for (Category category : LitePal.findAll(Category.class)){
+            categoryName.add(category.getTitle());
+            categoryData.put(category.getTitle(), category.getId());
+            categoryName_array[index] = category.getTitle();
+            index++;
+        }
+
         //初始化适配器
         adapter = new CollectionItemListAdapter(collectionItemList);
         adapter.setMyJumpOutRoad(new CollectionItemListAdapter.JumpOutRoad() {
             @Override
             public void JumpOut(Intent intent) {
                 startActivity(intent);
+            }
+
+            @Override
+            public void CopyToShare(String data){
+                //获取剪贴板管理器
+                ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                // 创建普通字符型ClipData
+                ClipData mClipData = ClipData.newPlainText("Label", data);
+                // 将ClipData内容放到系统剪贴板里。
+                cm.setPrimaryClip(mClipData);
+
+                Toast.makeText(getApplicationContext(), "内容已复制到剪贴板", Toast.LENGTH_SHORT).show();
             }
 
             @Override
@@ -317,7 +353,7 @@ public class CollectionItemListActivity extends BaseActivity {
                 fab.setClickable(false);
                 actionMode = mode;
                 MenuInflater inflater = mode.getMenuInflater();
-                inflater.inflate(R.menu.collectionitemlist_delete, menu);
+                inflater.inflate(R.menu.collectionitemlist_action_mode_menu, menu);
                 return true;
             }
             return false;
@@ -328,11 +364,15 @@ public class CollectionItemListActivity extends BaseActivity {
             return false;
         }
 
+        //多选模式下的操作按钮
         @Override
         public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
             switch (item.getItemId()){
                 case R.id.collectionitemlist_actionMode_delete:
                     return confirmDeleAll();
+                case R.id.collectionitemlist_actionMode_move:
+                    //TODO:move
+                    return moveCollectionItems();
                 case R.id.collectionitemlist_actionMode_SelectAll:
                     if (positionSet.size() == collectionItemList.size()){
                         for (int i = 0; i < adapter.getItemCount(); i++){
@@ -388,7 +428,7 @@ public class CollectionItemListActivity extends BaseActivity {
     /*
     多选模式删除确认
      */
-    public boolean confirmDeleAll(){
+    private Boolean confirmDeleAll(){
 
         /*
         确认是否删除
@@ -427,5 +467,64 @@ public class CollectionItemListActivity extends BaseActivity {
     /*
     END
     多选模式删除确认
+     */
+
+    /*
+    多选模式移动
+     */
+    private Boolean moveCollectionItems(){
+
+        //初始化选择框
+        AlertDialog dialog = new AlertDialog.Builder(this).setTitle("移动到")
+                .setItems(categoryName_array, new OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                        //通过类名获取id再获取包名
+                        id = categoryData.get(categoryName.get(which));
+                        PackageName = LitePal.find(Category.class, id).getPackageName();
+
+                        //移动操作：把夫包名（类别）更改成用户选择的
+                        CollectionItem temp;
+                        for (int position : positionSet){
+                            temp = LitePal.find(CollectionItem.class, adapter.getCollectionItemList().get(position).getId());
+                            temp.setParentCategory(PackageName);
+                            temp.update(temp.getId());
+                        }
+
+                        //刷新操作
+                        //从数据库中读取对应类别数据
+                        if (category.getPackageName().equals("全部收藏")){
+                            collectionItemList.clear();
+                            List<CollectionItem> newList = LitePal.order("id desc").find(CollectionItem.class);
+                            collectionItemList.addAll(newList);
+
+                        }
+                        else {
+                            collectionItemList.clear();
+                            List<CollectionItem> newList = LitePal.where("ParentCategory = ?", category.getPackageName())
+                                    .order("id desc")
+                                    .find(CollectionItem.class);
+                            collectionItemList.addAll(newList);
+                        }
+                        adapter.notifyDataSetChanged();
+
+                        //移动成功提示
+                        Toast.makeText(getApplicationContext(), "成功移动到" + LitePal.find(Category.class, id).getTitle()
+                        , Toast.LENGTH_SHORT).show();
+
+                        dialog.dismiss();
+
+                        actionMode.finish();
+                    }
+                }).show();
+
+
+        return true;
+    }
+
+    /*
+    END
+    多选模式移动
      */
 }
