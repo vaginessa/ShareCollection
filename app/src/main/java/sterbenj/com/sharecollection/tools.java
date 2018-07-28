@@ -11,6 +11,8 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 
 import java.io.ByteArrayOutputStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * XJB Created by 野良人 on 2018/6/12.
@@ -56,5 +58,13 @@ public class tools {
             }
         }
         return false;
+    }
+
+    //获取时间
+    public static String getCreateDate(){
+        long currentTime = System.currentTimeMillis();
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd, HH:mm:ss");
+        Date date = new Date(currentTime);
+        return formatter.format(date);
     }
 }

@@ -1,6 +1,7 @@
 package sterbenj.com.sharecollection;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
@@ -51,8 +52,9 @@ public class AcceptCollectionitemAndEditActivity extends BaseActivity {
     private CardView cardView;
     private TextInputEditText Title;
     private String title;
-    private TextInputEditText Context;
+    private TextInputEditText ContextEdit;
     private String context;
+    private String date;
 
     private AppCompatImageView appCompatImageView;
     private ContentLoadingProgressBar progressBar;
@@ -120,6 +122,9 @@ public class AcceptCollectionitemAndEditActivity extends BaseActivity {
 
                 //获取标题
                 title = document.getElementsByTag("title").text();
+
+                //获取内容
+                context = document.getElementsByTag("meta").select("[name=description]").attr("content");
 
                 //微信公众号
                 if (uri.indexOf("weixin.qq.com") != -1){
@@ -235,6 +240,16 @@ public class AcceptCollectionitemAndEditActivity extends BaseActivity {
                     single = document.getElementsByTag("meta").select("[property=og:image]").attr("content");
                 }
 
+                //MIUI论坛
+                else if (uri.indexOf("http://www.miui.com/thread") == 0 || uri.indexOf("www.miui.com/thread") == 0){
+                    single = document.getElementsByTag("ignore_js_op").first().select("img").attr("zoomfile");
+                }
+
+                //一加社区
+                else if (uri.indexOf("http://www.oneplusbbs.com/thread") == 0 || uri.indexOf("www.oneplusbbs.com/thread") == 0){
+                    single = document.getElementsByTag("ignore_js_op").first().select("img").attr("zoomfile");
+                }
+
                 //默认情况
                 else{
                     //获取所有img标签数据
@@ -290,14 +305,14 @@ public class AcceptCollectionitemAndEditActivity extends BaseActivity {
                 case SET_IMAGE:
                     Glide.with(getApplicationContext()).load(mImageUri).error(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_close_black_24dp)).into(appCompatImageView);
                     Title.setText(title);
-                    Context.setText(context);
+                    ContextEdit.setText(date + context);
                     progressBar.setVisibility(View.GONE);
                     hasFinishImage = true;
                     break;
                 case NO_IMAGE:
-                    appCompatImageView.setImageDrawable(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_close_black_24dp));
+                    Glide.with(getApplicationContext()).load(mImageUri).error(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_close_black_24dp)).into(appCompatImageView);
                     Title.setText(title);
-                    Context.setText(context);
+                    ContextEdit.setText(date + context);
                     progressBar.setVisibility(View.GONE);
                     hasFinishImage = true;
                     break;
@@ -316,6 +331,9 @@ public class AcceptCollectionitemAndEditActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_accept_edit_collectionitem);
 
+        //初始化默认备注时间戳
+        date = tools.getCreateDate() + " - ";
+
         //若没有默认分类就创建
         if(LitePal.where("PackageName = ?", "全部收藏").find(Category.class).size() == 0){
             Category category = new Category("全部收藏", tools.DrawableToByteArray(ContextCompat.getDrawable(this, R.drawable.ic_folder_black_24dp)), "全部收藏", "全部收藏");
@@ -325,7 +343,7 @@ public class AcceptCollectionitemAndEditActivity extends BaseActivity {
         //初始化各种控件
         collectionItem = new CollectionItem();
         cardView = (CardView)findViewById(R.id.accept_collectionitem_cardview);
-        Context = (TextInputEditText)findViewById(R.id.accept_edit_context);
+        ContextEdit = (TextInputEditText)findViewById(R.id.accept_edit_context);
         Title = (TextInputEditText)findViewById(R.id.accept_edit_title);
         appCompatImageView = (AppCompatImageView)findViewById(R.id.accept_collectionitem_image);
         progressBar = (ContentLoadingProgressBar) findViewById(R.id.accept_collectionitem_progressbar);
@@ -360,7 +378,7 @@ public class AcceptCollectionitemAndEditActivity extends BaseActivity {
             long collectionItemID = intent.getLongExtra("CollectionItemID", -1);
             collectionItem = LitePal.find(CollectionItem.class, collectionItemID);
             uri = collectionItem.getmUri();
-            Context.setText(collectionItem.getContext());
+            ContextEdit.setText(collectionItem.getContext());
             Title.setText(collectionItem.getTitle());
 
             hasFinishImage = true;
@@ -456,7 +474,7 @@ public class AcceptCollectionitemAndEditActivity extends BaseActivity {
 
         if (hasFinishImage && !thread.isAlive()){
             collectionItem.setmUri(uri);
-            collectionItem.setContext(Context.getText().toString());
+            collectionItem.setContext(ContextEdit.getText().toString());
             collectionItem.setTitle(Title.getText().toString());
             collectionItem.setParentCategory(PackageName);
             collectionItem.setImage(tools.DrawableToByteArray(appCompatImageView.getDrawable()));
@@ -481,7 +499,7 @@ public class AcceptCollectionitemAndEditActivity extends BaseActivity {
 
     //确认是否返回
     public void confirmBack(){
-        if (!(cache.getContext().equals(Context.getText().toString()) && cache.getTitle().equals(Title.getText().toString()))){
+        if (!(cache.getContext().equals(ContextEdit.getText().toString()) && cache.getTitle().equals(Title.getText().toString()))){
             AlertDialog.Builder dialog = new AlertDialog.Builder(AcceptCollectionitemAndEditActivity.this);
             dialog.setMessage("内容已经更改，是否保存？");
             dialog.setCancelable(true);
