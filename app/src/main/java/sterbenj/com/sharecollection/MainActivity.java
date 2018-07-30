@@ -6,6 +6,9 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.opengl.Visibility;
@@ -34,17 +37,25 @@ import android.view.View;
 import android.widget.CheckBox;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
 import org.litepal.LitePal;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
-import cn.bmob.v3.Bmob;
 import cn.bmob.v3.BmobBatch;
 import cn.bmob.v3.BmobObject;
 import cn.bmob.v3.BmobQuery;
@@ -53,7 +64,6 @@ import cn.bmob.v3.datatype.BatchResult;
 import cn.bmob.v3.exception.BmobException;
 import cn.bmob.v3.listener.FindListener;
 import cn.bmob.v3.listener.QueryListListener;
-import cn.bmob.v3.listener.SaveListener;
 
 public class MainActivity extends BaseActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -249,13 +259,15 @@ public class MainActivity extends BaseActivity
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
-        //TODO:同步操作
         switch (id){
             case R.id.main_menu_upload:
                 upload();
                 break;
             case R.id.main_menu_download:
                 download();
+                break;
+            case R.id.main_menu_getImage:
+                getAllImage();
                 break;
         }
 
@@ -569,12 +581,6 @@ public class MainActivity extends BaseActivity
 
                 bmobCollectionItem.setParentCategory(collectionItem.getParentCategory());
 
-                Byte[] bytes = new Byte[collectionItem.getImage().length];
-                for (int i = 0; i < collectionItem.getImage().length; i++){
-                    bytes[i] = collectionItem.getImage()[i];
-                }
-                bmobCollectionItem.setImage(bytes);
-
                 update.add(bmobCollectionItem);
             }
             new BmobBatch().insertBatch(update).doBatch(new QueryListListener<BatchResult>() {
@@ -711,12 +717,6 @@ public class MainActivity extends BaseActivity
 
             collectionItem.setParentCategory(bmobCollectionItem.getParentCategory());
 
-            byte[] bytes = new byte[bmobCollectionItem.getImage().length];
-            for (int i = 0; i < bmobCollectionItem.getImage().length; i++){
-                bytes[i] = bmobCollectionItem.getImage()[i];
-            }
-            collectionItem.setImage(bytes);
-
             collectionItem.save();
         }
         list.clear();
@@ -731,6 +731,216 @@ public class MainActivity extends BaseActivity
         progressDialog.dismiss();
 
         Toast.makeText(getApplicationContext(), "同步至本机成功", Toast.LENGTH_SHORT).show();
+    }
+
+    /*
+    END
+    download
+     */
+
+    //一键获取缩略图
+    private void getAllImage(){
+        class LoadImage extends AsyncTask<Void, Integer, Void>{
+
+            private ProgressDialog progressDialog;
+            private  List<CollectionItem> collectionItemList;
+
+            @Override
+            protected void onPreExecute() {
+                super.onPreExecute();
+                collectionItemList = LitePal.findAll(CollectionItem.class);
+                progressDialog = new ProgressDialog(MainActivity.this);
+                progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+                progressDialog.setTitle("正在获取缩略图");
+                progressDialog.setMessage("可以挂到后台等待");
+                progressDialog.setMax(collectionItemList.size());
+                progressDialog.setCancelable(false);
+                progressDialog.show();
+            }
+
+            @Override
+            protected Void doInBackground(Void... voids) {
+                PackageManager packageManager = getPackageManager();
+                LitePal.deleteAll(mApp.class);
+                for (int i = 0; i < collectionItemList.size(); i++){
+                    CollectionItem temp = collectionItemList.get(i);
+                    temp.setImage(getImagebyte(temp.getmUri()));
+                    temp.update(temp.getId());
+                    publishProgress(i + 1);
+                }
+                return null;
+            }
+
+            @Override
+            protected void onProgressUpdate(Integer... values) {
+                super.onProgressUpdate(values);
+                progressDialog.setProgress(values[0]);
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                super.onPostExecute(aVoid);
+                collectionItemList.clear();
+                progressDialog.dismiss();
+                Toast.makeText(getApplicationContext(), "获取缩略图完成", Toast.LENGTH_SHORT).show();
+            }
+        }
+        new LoadImage().execute();
+    }
+
+    private byte[] getImagebyte(String uri){
+        Document document;
+        Elements images;
+        Elements ImageUri;
+        String single = null;
+        try{
+            document = Jsoup.connect(uri).timeout(10000).get();
+
+            //微信公众号
+            if (uri.indexOf("weixin.qq.com") != -1){
+                images = document.getElementsByTag("img");
+                ImageUri = images.select("[data-src$=jpeg],[data-src$=png]");
+                Log.d("++++++++++++++++++++", "run: " + ImageUri.size() + "and" + images.size());
+                if (ImageUri.size() != 0) {
+                    single = ImageUri.first().attr("abs:data-src");
+                }
+                Log.d("Accept", "run: weixin");
+            }
+
+            //bilibili
+            else if (uri.indexOf("bilibili.com") != -1){
+
+                //获取所有meta标签数据
+                images = document.getElementsByTag("meta");
+
+                //获取图片uri
+                ImageUri = images.select("[content$=.jpg]");
+                if (ImageUri.size() != 0){
+                    single = ImageUri.first().attr("abs:content");
+                }
+            }
+
+            //知乎
+            else if (uri.indexOf("zhihu.com") != -1){
+                images = document.getElementsByTag("link");
+                ImageUri = images.select("[rel=shortcut icon]");
+                if (images.size() != 0){
+                    single = ImageUri.attr("abs:href");
+                }
+            }
+
+            //酷安
+            else if (uri.indexOf("www.coolapk.com") != -1){
+                images = document.getElementsByTag("img");
+                ImageUri = images.select("[src$=under_logo.png]");
+                if (images.size() != 0){
+                    single = ImageUri.first().attr("abs:src");
+                }
+            }
+
+            //普通微博
+            else if (uri.indexOf("m.weibo.cn") != -1){
+                images = document.getElementsByTag("script");
+                String[] jsData = images.get(1).data().toString().split("var");
+                for (String str : jsData){
+                    if (str.contains("$render_data")){
+                        String[] ineed = str.split("\",");
+                        for (String str2 : ineed){
+                            if (str2.trim().contains("original_pic")){
+                                Log.d("MainActivity233", "run: "+ str2.trim() + "  " + str2);
+                                single = str2.substring(str2.indexOf("http"));
+                            }
+                        }
+                    }
+                }
+            }
+
+            //微博图文
+            else if (uri.indexOf("media.weibo.cn") != -1){
+                images = document.getElementsByTag("script");
+                String[] jsData = images.get(1).data().toString().split("var");
+                for (String str : jsData){
+                    if (str.contains("$render_data")){
+
+                        //图片
+                        String[] ineed = str.split("\"|\":");
+                        for (String str2 : ineed){
+                            if (str2.trim().contains(".jpg")){
+                                Log.d("MainActivity233", "run: "+ str2.trim() + "  " + str2);
+                                single = str2.trim();
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            //taptap游戏
+            else if (uri.indexOf("https://www.taptap.com/app") == 0 || uri.indexOf("www.taptap.com/app") == 0){
+                images = document.getElementsByTag("meta");
+                single = images.select("[property=og:image]").attr("content");
+            }
+
+            //taptap图文
+            else if (uri.indexOf("https://www.taptap.com/story") == 0 || uri.indexOf("www.taptap.com/story") == 0){
+                single = document.getElementsByTag("meta").select("[property=og:image]").attr("content");
+            }
+
+            //MIUI论坛
+            else if (uri.indexOf("http://www.miui.com/thread") == 0 || uri.indexOf("www.miui.com/thread") == 0){
+                single = document.getElementsByTag("ignore_js_op").first().select("img").attr("zoomfile");
+            }
+
+            //一加社区
+            else if (uri.indexOf("http://www.oneplusbbs.com/thread") == 0 || uri.indexOf("www.oneplusbbs.com/thread") == 0){
+                single = document.getElementsByTag("ignore_js_op").first().select("img").attr("zoomfile");
+            }
+
+            //默认情况
+            else{
+                //获取所有img标签数据
+                images = document.getElementsByTag("img");
+                //筛选有可能有图片的标签
+                ImageUri = images.select("[data-src$=jpeg],[data-src$=png],[src$=jpeg],[src$=png]");
+                //筛选到时
+                if (ImageUri.size() != 0){
+                    single = ImageUri.first().attr("abs:src");
+                    Log.d("Accept", "In run: not 0");
+                }
+                //筛选不到时
+                else{
+                    single = null;
+                    Log.d("Accept", "In run: 0");
+                }
+                Log.d("Accept", "run: normal");
+            }
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+
+        return tools.BittmapToByteArray(getImageBitmap(single));
+    }
+    private Bitmap getImageBitmap(String url) {
+        URL imgurl = null;
+        Bitmap bitmap = null;
+
+        HttpURLConnection urlConnection;
+        try {
+            imgurl = new URL(url);
+            urlConnection = (HttpURLConnection)
+                    imgurl.openConnection();
+            urlConnection.setRequestMethod("GET");
+            urlConnection.connect();
+            InputStream is = urlConnection.getInputStream();
+            bitmap = BitmapFactory.decodeStream(is);
+            is.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+        return bitmap;
     }
 
 }

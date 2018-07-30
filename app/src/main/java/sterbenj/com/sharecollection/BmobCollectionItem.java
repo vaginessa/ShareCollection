@@ -8,7 +8,6 @@ public class BmobCollectionItem extends BmobObject {
     private String Context;
     private String mUri;
     private String ParentCategory;
-    private Byte[] Image;
     private String UserId;
 
     public String getUserId() {
@@ -31,10 +30,6 @@ public class BmobCollectionItem extends BmobObject {
         return ParentCategory;
     }
 
-    public Byte[] getImage() {
-        return Image;
-    }
-
     public void setUserId(String userId) {
         UserId = userId;
     }
@@ -53,9 +48,5 @@ public class BmobCollectionItem extends BmobObject {
 
     public void setParentCategory(String parentCategory) {
         ParentCategory = parentCategory;
-    }
-
-    public void setImage(Byte[] image) {
-        Image = image;
     }
 }

@@ -40,6 +40,12 @@ public class tools {
         return road.toByteArray();
     }
 
+    public static byte[] BittmapToByteArray(Bitmap bitmap){
+        ByteArrayOutputStream road = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, road);
+        return road.toByteArray();
+    }
+
     //byte[]转Drawable
     public static Drawable ByteArrayToDrawable(byte[] bytes){
         Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
