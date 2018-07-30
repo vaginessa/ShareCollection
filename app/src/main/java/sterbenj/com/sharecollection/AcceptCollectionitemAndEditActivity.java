@@ -156,6 +156,12 @@ public class AcceptCollectionitemAndEditActivity extends BaseActivity {
                     if (ImageUri.size() != 0){
                         context = ImageUri.attr("content");
                     }
+                    else {
+                        ImageUri = images.select("[content$=.png]");
+                        if (ImageUri.size() != 0){
+                            single = ImageUri.first().attr("abs:content");
+                        }
+                    }
 
                     Log.d("Accept", "run: bilibili");
                 }

@@ -9,6 +9,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
 import java.text.SimpleDateFormat;
@@ -51,6 +52,30 @@ public class tools {
         Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
         Drawable drawable = new BitmapDrawable(bitmap);
         return drawable;
+    }
+
+    //Bitmap转byte[]
+    public static byte[] BitmapToByteArray(Bitmap bitmap, boolean needRecycle) {
+        if (null == bitmap) {
+            return null;
+        }
+        if (bitmap.isRecycled()) {
+            return null;
+        }
+
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, output);
+        if (needRecycle) {
+            bitmap.recycle();
+        }
+
+        byte[] result = output.toByteArray();
+        try {
+            output.close();
+        } catch (Exception e) {
+
+        }
+        return result;
     }
 
     //判断是否有网络连接

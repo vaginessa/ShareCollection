@@ -8,6 +8,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -46,6 +47,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 import org.litepal.LitePal;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -744,11 +746,14 @@ public class MainActivity extends BaseActivity
 
             private ProgressDialog progressDialog;
             private List<CollectionItem> collectionItemList;
-            private Boolean isSuccess;
+            private int success;
+            private int fail;
 
             @Override
             protected void onPreExecute() {
                 super.onPreExecute();
+                success = 0;
+                fail = 0;
                 collectionItemList = LitePal.order("id desc").find(CollectionItem.class);
                 progressDialog = new ProgressDialog(MainActivity.this);
                 progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
@@ -757,25 +762,25 @@ public class MainActivity extends BaseActivity
                 progressDialog.setMax(collectionItemList.size());
                 progressDialog.setCancelable(false);
                 progressDialog.show();
-                isSuccess = true;
             }
 
             //获取缩略图实现
             @Override
             protected Void doInBackground(Void... voids) {
                 PackageManager packageManager = getPackageManager();
-                LitePal.deleteAll(mApp.class);
                 for (int i = 0; i < collectionItemList.size(); i++){
                     CollectionItem temp = collectionItemList.get(i);
                     byte[] bytes = getImagebyte(temp.getmUri());
                     if (bytes == null){
-                        isSuccess = false;
-                        break;
+                        fail++;
+                        publishProgress(i + 1);
+                        continue;
                     }
                     else{
-                        isSuccess = true;
+                        success++;
                         temp.setImage(bytes);
                         temp.update(temp.getId());
+                        Log.d(TAG, "doInBackground: " + temp.getTitle());
                         publishProgress(i + 1);
                     }
                 }
@@ -793,12 +798,8 @@ public class MainActivity extends BaseActivity
                 super.onPostExecute(aVoid);
                 collectionItemList.clear();
                 progressDialog.dismiss();
-                if (isSuccess){
-                    Toast.makeText(getApplicationContext(), "获取缩略图完成", Toast.LENGTH_SHORT).show();
-                }
-                else{
-                    Toast.makeText(getApplicationContext(), "获取缩略图失败，网络质量差", Toast.LENGTH_SHORT).show();
-                }
+
+                Toast.makeText(getApplicationContext(), "获取缩略图完成，成功:" + success + "，失败:" + fail, Toast.LENGTH_LONG).show();
             }
         }
         if (tools.isNetworkConnected(getApplicationContext())){
@@ -839,6 +840,12 @@ public class MainActivity extends BaseActivity
                 ImageUri = images.select("[content$=.jpg]");
                 if (ImageUri.size() != 0){
                     single = ImageUri.first().attr("abs:content");
+                }
+                else {
+                    ImageUri = images.select("[content$=.png]");
+                    if (ImageUri.size() != 0){
+                        single = ImageUri.first().attr("abs:content");
+                    }
                 }
             }
 
@@ -971,7 +978,59 @@ public class MainActivity extends BaseActivity
             e.printStackTrace();
             return null;
         }
+        return getZoomImage(bitmap, 2000);
+    }
+
+    public static Bitmap getZoomImage(Bitmap bitmap, double maxSize) {
+        if (null == bitmap) {
+            return null;
+        }
+        if (bitmap.isRecycled()) {
+            return null;
+        }
+
+        //byte换算kb
+        double currentSize = tools.BitmapToByteArray(bitmap, false).length / 1024;
+
+        //若大于最大大小则压缩
+        while (currentSize > maxSize) {
+            double multiple = currentSize / maxSize;
+            bitmap = getZoomImage(bitmap, bitmap.getWidth() / Math.sqrt(multiple), bitmap.getHeight() / Math.sqrt(multiple));
+            currentSize = tools.BitmapToByteArray(bitmap, false).length / 1024;
+        }
         return bitmap;
     }
+
+    //按比例重绘bitmap
+    public static Bitmap getZoomImage(Bitmap orgBitmap, double newWidth, double newHeight) {
+        if (null == orgBitmap) {
+            return null;
+        }
+        if (orgBitmap.isRecycled()) {
+            return null;
+        }
+        if (newWidth <= 0 || newHeight <= 0) {
+            return null;
+        }
+
+        // 获取图片的宽和高
+        float width = orgBitmap.getWidth();
+        float height = orgBitmap.getHeight();
+
+        // 创建操作图片的matrix对象
+        Matrix matrix = new Matrix();
+
+        // 计算宽高缩放率
+        float scaleWidth = ((float) newWidth) / width;
+        float scaleHeight = ((float) newHeight) / height;
+
+        // 缩放图片动作
+        matrix.postScale(scaleWidth, scaleHeight);
+        Bitmap bitmap = Bitmap.createBitmap(orgBitmap, 0, 0, (int) width, (int) height, matrix, true);
+        return bitmap;
+    }
+
+
+
 
 }
