@@ -743,12 +743,13 @@ public class MainActivity extends BaseActivity
         class LoadImage extends AsyncTask<Void, Integer, Void>{
 
             private ProgressDialog progressDialog;
-            private  List<CollectionItem> collectionItemList;
+            private List<CollectionItem> collectionItemList;
+            private Boolean isSuccess;
 
             @Override
             protected void onPreExecute() {
                 super.onPreExecute();
-                collectionItemList = LitePal.findAll(CollectionItem.class);
+                collectionItemList = LitePal.order("id desc").find(CollectionItem.class);
                 progressDialog = new ProgressDialog(MainActivity.this);
                 progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
                 progressDialog.setTitle("正在获取缩略图");
@@ -756,17 +757,27 @@ public class MainActivity extends BaseActivity
                 progressDialog.setMax(collectionItemList.size());
                 progressDialog.setCancelable(false);
                 progressDialog.show();
+                isSuccess = true;
             }
 
+            //获取缩略图实现
             @Override
             protected Void doInBackground(Void... voids) {
                 PackageManager packageManager = getPackageManager();
                 LitePal.deleteAll(mApp.class);
                 for (int i = 0; i < collectionItemList.size(); i++){
                     CollectionItem temp = collectionItemList.get(i);
-                    temp.setImage(getImagebyte(temp.getmUri()));
-                    temp.update(temp.getId());
-                    publishProgress(i + 1);
+                    byte[] bytes = getImagebyte(temp.getmUri());
+                    if (bytes == null){
+                        isSuccess = false;
+                        break;
+                    }
+                    else{
+                        isSuccess = true;
+                        temp.setImage(bytes);
+                        temp.update(temp.getId());
+                        publishProgress(i + 1);
+                    }
                 }
                 return null;
             }
@@ -782,12 +793,23 @@ public class MainActivity extends BaseActivity
                 super.onPostExecute(aVoid);
                 collectionItemList.clear();
                 progressDialog.dismiss();
-                Toast.makeText(getApplicationContext(), "获取缩略图完成", Toast.LENGTH_SHORT).show();
+                if (isSuccess){
+                    Toast.makeText(getApplicationContext(), "获取缩略图完成", Toast.LENGTH_SHORT).show();
+                }
+                else{
+                    Toast.makeText(getApplicationContext(), "获取缩略图失败，网络质量差", Toast.LENGTH_SHORT).show();
+                }
             }
         }
-        new LoadImage().execute();
+        if (tools.isNetworkConnected(getApplicationContext())){
+            new LoadImage().execute();
+        }
+        else {
+            Toast.makeText(getApplicationContext(), "获取缩略图失败，没有网络连接", Toast.LENGTH_SHORT).show();
+        }
     }
 
+    //解析uri获取图片uri
     private byte[] getImagebyte(String uri){
         Document document;
         Elements images;
@@ -919,9 +941,16 @@ public class MainActivity extends BaseActivity
         {
             e.printStackTrace();
         }
-
-        return tools.BittmapToByteArray(getImageBitmap(single));
+        Bitmap bitmap = getImageBitmap(single);
+        if (bitmap == null){
+            return null;
+        }
+        else{
+            return tools.BittmapToByteArray(bitmap);
+        }
     }
+
+    //解析图片uri获取bitmap
     private Bitmap getImageBitmap(String url) {
         URL imgurl = null;
         Bitmap bitmap = null;
@@ -932,6 +961,8 @@ public class MainActivity extends BaseActivity
             urlConnection = (HttpURLConnection)
                     imgurl.openConnection();
             urlConnection.setRequestMethod("GET");
+            urlConnection.setReadTimeout(30000);
+            urlConnection.setConnectTimeout(30000);
             urlConnection.connect();
             InputStream is = urlConnection.getInputStream();
             bitmap = BitmapFactory.decodeStream(is);
