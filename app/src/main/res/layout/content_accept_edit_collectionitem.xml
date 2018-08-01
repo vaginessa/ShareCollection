@@ -39,6 +39,14 @@
                     android:layout_weight="10">
                 </android.support.v7.widget.AppCompatSpinner>
 
+                <android.support.v7.widget.AppCompatButton
+                    android:id="@+id/accept_new_Category"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@android:color/transparent"
+                    android:visibility="gone"
+                    android:text="新建"/>
+
 
             </LinearLayout>
 

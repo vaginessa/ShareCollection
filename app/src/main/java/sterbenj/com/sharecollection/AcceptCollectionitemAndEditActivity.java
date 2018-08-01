@@ -13,6 +13,7 @@ import android.os.Message;
 import android.support.design.widget.TextInputEditText;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.ContentLoadingProgressBar;
+import android.support.v7.widget.AppCompatButton;
 import android.support.v7.widget.AppCompatImageView;
 import android.support.v7.widget.AppCompatSpinner;
 import android.support.v7.widget.CardView;
@@ -61,6 +62,7 @@ public class AcceptCollectionitemAndEditActivity extends BaseActivity {
     private CollectionItem collectionItem;
     private AppCompatSpinner spinner;
     private Toolbar toolbar;
+    private AppCompatButton createNewCategory;
 
     private String data;
     private String uri;
@@ -333,6 +335,22 @@ public class AcceptCollectionitemAndEditActivity extends BaseActivity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        //初始化spinner列表
+        categoryName.clear();
+        categoryData.clear();
+        for (Category category : LitePal.findAll(Category.class)){
+            categoryName.add(category.getTitle());
+            categoryData.put(category.getTitle(), category.getId());
+        }
+
+        spinner.setAdapter(new ArrayAdapter<String>(this, R.layout.spinner_item, categoryName));
+
+        spinner.setSelection(SpinnerIndex);
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_accept_edit_collectionitem);
@@ -364,13 +382,7 @@ public class AcceptCollectionitemAndEditActivity extends BaseActivity {
                 break;
         }
 
-        //初始化spinner列表
-        categoryName.clear();
-        categoryData.clear();
-        for (Category category : LitePal.findAll(Category.class)){
-            categoryName.add(category.getTitle());
-            categoryData.put(category.getTitle(), category.getId());
-        }
+
 
         //获取intent信息
         intent = getIntent();
@@ -379,6 +391,17 @@ public class AcceptCollectionitemAndEditActivity extends BaseActivity {
         //初始化Spinner
         spinner = (AppCompatSpinner)findViewById(R.id.accept_edit_spinner);
 
+        //初始化新建按钮
+        createNewCategory = (AppCompatButton)findViewById(R.id.accept_new_Category);
+        createNewCategory.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(), CategoryEditActivity.class);
+                intent.setAction("From Custom");
+                startActivity(intent);
+            }
+        });
+
         //来自应用内
         if (intent.getAction().equals("FROM_IN")){
             long collectionItemID = intent.getLongExtra("CollectionItemID", -1);
@@ -386,6 +409,7 @@ public class AcceptCollectionitemAndEditActivity extends BaseActivity {
             uri = collectionItem.getmUri();
             ContextEdit.setText(collectionItem.getContext());
             Title.setText(collectionItem.getTitle());
+            createNewCategory.setVisibility(View.GONE);
 
             hasFinishImage = true;
             if (collectionItem.getImage() != null){
@@ -404,6 +428,7 @@ public class AcceptCollectionitemAndEditActivity extends BaseActivity {
         else if (intent.getAction().equals("FROM_PASTE")){
             hasFinishImage = false;
             if (intent.getStringExtra("Paste") != null){
+                createNewCategory.setVisibility(View.VISIBLE);
                 uri = intent.getStringExtra("Paste");
                 title = "";
                 thread.start();
@@ -414,6 +439,7 @@ public class AcceptCollectionitemAndEditActivity extends BaseActivity {
         else{
             hasFinishImage = false;
             if (intent.getStringExtra(Intent.EXTRA_TEXT) != null){
+                createNewCategory.setVisibility(View.VISIBLE);
                 data = intent.getStringExtra(Intent.EXTRA_TEXT);
                 uri = data.substring(data.indexOf("http"));
                 title = data.substring(0, data.indexOf("http"));
@@ -426,9 +452,7 @@ public class AcceptCollectionitemAndEditActivity extends BaseActivity {
         }
 
 
-        spinner.setAdapter(new ArrayAdapter<String>(this, R.layout.spinner_item, categoryName));
 
-        spinner.setSelection(SpinnerIndex);
 
 
         //设置spinner监听

@@ -223,6 +223,9 @@ public class CollectionItemListActivity extends BaseActivity {
         //初始化列表
         recyclerView = (RecyclerView)findViewById(R.id.recy_collectionlist);
         recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setItemViewCacheSize(10);
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setNestedScrollingEnabled(true);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setAdapter(adapter);
 
@@ -371,7 +374,6 @@ public class CollectionItemListActivity extends BaseActivity {
                 case R.id.collectionitemlist_actionMode_delete:
                     return confirmDeleAll();
                 case R.id.collectionitemlist_actionMode_move:
-                    //TODO:move
                     return moveCollectionItems();
                 case R.id.collectionitemlist_actionMode_SelectAll:
                     if (positionSet.size() == collectionItemList.size()){

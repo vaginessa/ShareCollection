@@ -137,7 +137,6 @@ public class CollectionItemListAdapter extends RecyclerView.Adapter<CollectionIt
         holder.imageButton2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //TODO:复制
                 MyJumpOutRoad.CopyToShare(collectionItemList.get(position).getTitle()
                 + "\n" + collectionItemList.get(position).getmUri());
             }

@@ -968,8 +968,8 @@ public class MainActivity extends BaseActivity
             urlConnection = (HttpURLConnection)
                     imgurl.openConnection();
             urlConnection.setRequestMethod("GET");
-            urlConnection.setReadTimeout(30000);
-            urlConnection.setConnectTimeout(30000);
+            urlConnection.setReadTimeout(35000);
+            urlConnection.setConnectTimeout(35000);
             urlConnection.connect();
             InputStream is = urlConnection.getInputStream();
             bitmap = BitmapFactory.decodeStream(is);
@@ -978,7 +978,7 @@ public class MainActivity extends BaseActivity
             e.printStackTrace();
             return null;
         }
-        return getZoomImage(bitmap, 2000);
+        return getZoomImage(bitmap, 1024);
     }
 
     public static Bitmap getZoomImage(Bitmap bitmap, double maxSize) {
