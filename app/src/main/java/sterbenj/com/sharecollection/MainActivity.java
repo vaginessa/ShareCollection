@@ -1,5 +1,6 @@
 package sterbenj.com.sharecollection;
 
+import android.annotation.TargetApi;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -14,6 +15,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.opengl.Visibility;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -38,6 +40,7 @@ import android.view.View;
 import android.webkit.CookieManager;
 import android.webkit.ValueCallback;
 import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -82,6 +85,8 @@ public class MainActivity extends BaseActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     Boolean hasFinishLoadWeb;
+
+    int load_Index;
 
     private static HashSet STATIC = new HashSet() {
         {
@@ -1100,20 +1105,20 @@ public class MainActivity extends BaseActivity
 
     //load所有webview
     private void loadAllWebView(){
+        load_Index = 0;
         new Thread(new Runnable() {
             @Override
             public void run() {
                 List<CollectionItem> collectionItems = LitePal.findAll(CollectionItem.class);
                 for (final CollectionItem collectionItem : collectionItems){
-                    loadWebView(collectionItem.getId(), collectionItem.getmUri());
+                    loadWebView(collectionItem.getId(), collectionItem.getmUri(), collectionItems.size());
                 }
-                Toast.makeText(getApplicationContext(), "缓存完毕", Toast.LENGTH_SHORT).show();
             }
         }).run();
     }
 
     //预加载webview
-    private void loadWebView(long id, String uri){
+    private void loadWebView(long id, String uri, final int total){
         String collection_id = new Long(id).toString();
 
         String base_address = getApplicationContext().getExternalCacheDir().getAbsolutePath();
@@ -1177,10 +1182,27 @@ public class MainActivity extends BaseActivity
                     return true;
                 }
 
+                @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+                @Nullable
+                @Override
+                public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+                    hasFinishLoadWeb = false;
+                    return  WebViewCacheInterceptorInst.getInstance().interceptRequest(request);
+                }
+
+                @Nullable
+                @Override
+                public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
+                    hasFinishLoadWeb = false;
+                    return  WebViewCacheInterceptorInst.getInstance().interceptRequest(url);
+                }
+
                 @Override
                 public void onPageFinished(final WebView view, String url) {
                     super.onPageFinished(view, url);
                     Log.d("WebActivityLogd", "onPageFinished: ");
+                    load_Index++;
+                    Toast.makeText(getApplicationContext(), "第" + load_Index + "缓存完毕，" + "需缓存" + total + "条目", Toast.LENGTH_SHORT).show();
                     if (hasFinishLoadWeb){
                         view.saveWebArchive(cache.getAbsolutePath(), false, new ValueCallback<String>() {
                             @Override
@@ -1201,10 +1223,12 @@ public class MainActivity extends BaseActivity
                     Log.d("WebActivityLogd", "onPageStarted: ");
                 }
             });
-            WebViewCacheInterceptorInst.getInstance().loadUrl(webView, uri);
+            webView.loadUrl(uri);
         }
         else{
-            webView.loadUrl("file:///storage/emulated/0/Android/data/sterbenj.com.sharecollection/cache/" + collection_id + ".mhtml");
+            WebViewCacheInterceptorInst.getInstance().loadUrl(webView, uri);
+            //webView.loadUrl(uri);
+            //webView.loadUrl("file:///storage/emulated/0/Android/data/sterbenj.com.sharecollection/cache/" + collection_id + ".mhtml");
         }
     }
 

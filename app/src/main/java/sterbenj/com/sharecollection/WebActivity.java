@@ -95,14 +95,29 @@ public class WebActivity extends BaseActivity {
                 public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                     WebViewCacheInterceptorInst.getInstance().loadUrl(webView,request.getUrl().toString());
                     hasFinishLoadWeb = false;
-                    return true;
+                    return false;
                 }
 
                 @Override
                 public boolean shouldOverrideUrlLoading(WebView view, String url) {
                     WebViewCacheInterceptorInst.getInstance().loadUrl(webView,url);
                     hasFinishLoadWeb = false;
-                    return true;
+                    return false;
+                }
+
+                @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+                @Nullable
+                @Override
+                public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+                    hasFinishLoadWeb = false;
+                    return  WebViewCacheInterceptorInst.getInstance().interceptRequest(request);
+                }
+
+                @Nullable
+                @Override
+                public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
+                    hasFinishLoadWeb = false;
+                    return  WebViewCacheInterceptorInst.getInstance().interceptRequest(url);
                 }
 
                 @Override
@@ -126,10 +141,13 @@ public class WebActivity extends BaseActivity {
                     Log.d("WebActivityLogd", "onPageStarted: ");
                 }
             });
-            WebViewCacheInterceptorInst.getInstance().loadUrl(webView, intent.getStringExtra("uri"));
+            webView.loadUrl(intent.getStringExtra("uri"));
+            //WebViewCacheInterceptorInst.getInstance().loadUrl(webView, intent.getStringExtra("uri"));
         }
         else{
-            webView.loadUrl("file:///storage/emulated/0/Android/data/sterbenj.com.sharecollection/cache/" + collection_id + ".mhtml");
+            WebViewCacheInterceptorInst.getInstance().loadUrl(webView, intent.getStringExtra("uri"));
+            //webView.loadUrl(intent.getStringExtra("uri"));
+            //webView.loadUrl("file:///storage/emulated/0/Android/data/sterbenj.com.sharecollection/cache/" + collection_id + ".mhtml");
         }
     }
 
