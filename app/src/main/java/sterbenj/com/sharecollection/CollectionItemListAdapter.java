@@ -2,6 +2,7 @@ package sterbenj.com.sharecollection;
 
 import android.content.Context;
 import android.content.Intent;
+import android.media.Image;
 import android.net.Uri;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.AppCompatImageView;
@@ -43,6 +44,7 @@ public class CollectionItemListAdapter extends RecyclerView.Adapter<CollectionIt
         CardView cardView;
         ImageButton imageButton;
         ImageButton imageButton2;
+        ImageButton offlineButton;
         TextView title;
         View line;
         TextView context;
@@ -56,6 +58,7 @@ public class CollectionItemListAdapter extends RecyclerView.Adapter<CollectionIt
             cardView = (CardView)itemView.findViewById(R.id.card_view_collectionitemlist);
             imageButton = (ImageButton) itemView.findViewById(R.id.card_view_collectionitemlist_jump);
             imageButton2 = (ImageButton) itemView.findViewById(R.id.card_view_collectionitemlist_copy);
+            offlineButton = (ImageButton) itemView.findViewById(R.id.card_view_collecitonitemlist_offline);
             title = (TextView)itemView.findViewById(R.id.collectionlistitem_title);
             line = (View)itemView.findViewById(R.id.collectionlistitem_line);
             context = (TextView)itemView.findViewById(R.id.collectionlistitem_context);
@@ -127,9 +130,7 @@ public class CollectionItemListAdapter extends RecyclerView.Adapter<CollectionIt
         holder.imageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Uri uri = Uri.parse(holder.uri);
-                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-                MyJumpOutRoad.JumpOut(intent);
+                MyJumpOutRoad.onCollectionItemClick(collectionItemList.get(position), position, v, mContext, holder.checkBox);
             }
         });
 
@@ -142,12 +143,31 @@ public class CollectionItemListAdapter extends RecyclerView.Adapter<CollectionIt
             }
         });
 
+        //卡片点击跳转
         holder.cardView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                MyJumpOutRoad.onCollectionItemClick(collectionItemList.get(position), position, v, mContext, holder.checkBox);
+                Uri uri = Uri.parse(holder.uri);
+                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+                //有网路正常操作，没网络离线页面
+                if (tools.NetWork){
+                    MyJumpOutRoad.JumpOut(intent, position);
+                }
+                else {
+                    MyJumpOutRoad.JumpOfflineWeb(holder.uri, position);
+                }
             }
         });
+
+        //离线浏览按钮
+        holder.offlineButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                MyJumpOutRoad.JumpOfflineWeb(holder.uri, position);
+            }
+        });
+
+        //卡片长按多选删除
         holder.cardView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
@@ -158,10 +178,11 @@ public class CollectionItemListAdapter extends RecyclerView.Adapter<CollectionIt
     }
 
     public interface JumpOutRoad{
-        void JumpOut(Intent intent);
+        void JumpOut(Intent intent, int position);
         void CopyToShare(String data);
         void onCollectionItemClick(CollectionItem collectionItem,  int position, View v, Context mContext, CheckBox checkBox);
         void onCollectionitemLongClick(View v, int position);
+        void JumpOfflineWeb(String uri, int position);
     }
 
     public List<CollectionItem> getCollectionItemList(){

@@ -8,6 +8,7 @@ import android.graphics.PixelFormat;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
+import android.net.Network;
 import android.net.NetworkInfo;
 import android.util.Log;
 
@@ -19,6 +20,8 @@ import java.util.Date;
  * XJB Created by 野良人 on 2018/6/12.
  */
 public class tools {
+
+    public static Boolean NetWork = false;
 
     //Drawable转byte[]
     public static byte[] DrawableToByteArray(Drawable drawable){

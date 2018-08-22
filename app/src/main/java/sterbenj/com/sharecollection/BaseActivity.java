@@ -1,11 +1,18 @@
 package sterbenj.com.sharecollection;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.WindowManager;
 
 import cn.bmob.v3.Bmob;
@@ -17,6 +24,9 @@ public class BaseActivity extends AppCompatActivity {
 
     public static int sTheme;
     public static boolean pasteListenerIsRun;
+
+    private IntentFilter intentFilter;
+    private NetWorkChangeReceiver netWorkChangeReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
@@ -45,12 +55,37 @@ public class BaseActivity extends AppCompatActivity {
             //TODO 233
         }
 
+        //注册监听网络的广播
+        intentFilter = new IntentFilter();
+        intentFilter.addAction("android.net.conn.CONNECTIVITY_CHANGE");
+        netWorkChangeReceiver = new NetWorkChangeReceiver();
+        registerReceiver(netWorkChangeReceiver, intentFilter);
+
         super.onCreate(savedInstanceState);
         ActivityControl.addActivity(this);
+    }
+
+    class NetWorkChangeReceiver extends BroadcastReceiver{
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            ConnectivityManager connectivityManager = (ConnectivityManager)
+                    getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+            if (networkInfo != null && networkInfo.isAvailable()){
+                tools.NetWork = true;
+                Log.d("broad", "onReceive: " + tools.NetWork);
+            }
+            else{
+                tools.NetWork = false;
+                Log.d("broad", "onReceive: " + tools.NetWork);
+            }
+        }
     }
     @Override
     protected  void onDestroy(){
         super.onDestroy();
         ActivityControl.removeActivity(this);
+
+        unregisterReceiver(netWorkChangeReceiver);
     }
 }

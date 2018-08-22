@@ -50,7 +50,7 @@
             android:tint="?attr/colorBackgroundFloating"
             app:fab_colorNormal="@color/colorAccent"
             app:fab_colorPressed="@color/colorAccent"
-            android:src="@drawable/ic_edit_black_24dp"
+            android:src="@drawable/ic_edit_white_24dp"
             app:fab_size="mini"
             app:fab_label="自定义分类"/>
 

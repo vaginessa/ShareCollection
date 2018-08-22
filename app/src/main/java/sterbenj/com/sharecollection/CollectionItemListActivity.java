@@ -5,6 +5,7 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
@@ -20,18 +21,30 @@ import android.support.v7.widget.SearchView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.Toolbar;
 import android.util.ArrayMap;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.webkit.CookieManager;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.CheckBox;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.yanzhenjie.recyclerview.swipe.SwipeMenu;
+import com.yanzhenjie.recyclerview.swipe.SwipeMenuCreator;
+import com.yanzhenjie.recyclerview.swipe.SwipeMenuItem;
+import com.yanzhenjie.recyclerview.swipe.SwipeMenuRecyclerView;
 
 import org.litepal.LitePal;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -39,6 +52,7 @@ import java.util.Map;
 import java.util.Set;
 
 import jp.wasabeef.glide.transformations.BlurTransformation;
+import ren.yale.android.cachewebviewlib.WebViewCacheInterceptorInst;
 
 /**
  * XJB Created by 野良人 on 2018/6/13.
@@ -57,7 +71,7 @@ public class CollectionItemListActivity extends BaseActivity {
     private Toolbar toolbar;
     private CollapsingToolbarLayout collapsingToolbarLayout;
     private TextView mcontext;
-    private RecyclerView recyclerView;
+    private SwipeMenuRecyclerView recyclerView;
     private FloatingActionButton fab;
 
     private List<String> categoryName = new ArrayList<>();
@@ -92,6 +106,8 @@ public class CollectionItemListActivity extends BaseActivity {
         instance = this;
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_collectionitem_list);
+
+        WebView webView = new WebView(this);
 
         //获取类别信息
         final Intent intent = getIntent();
@@ -129,8 +145,44 @@ public class CollectionItemListActivity extends BaseActivity {
         adapter = new CollectionItemListAdapter(collectionItemList);
         adapter.setMyJumpOutRoad(new CollectionItemListAdapter.JumpOutRoad() {
             @Override
-            public void JumpOut(Intent intent) {
-                startActivity(intent);
+            public void JumpOut(Intent intent, int position) {
+                if (actionMode != null){
+                    if (positionSet.contains(position)) {
+                        // 如果包含，则撤销选择
+                        positionSet.remove(position);
+                    } else {
+                        // 如果不包含，则添加
+                        positionSet.add(position);
+                    }
+                    actionMode.setTitle(positionSet.size() + " 已选择项目");
+                    // 更新列表界面
+                    adapter.notifyItemChanged(position);
+                }
+                else{
+                    startActivity(intent);
+                }
+            }
+
+            @Override
+            public void JumpOfflineWeb(String uri, int position) {
+                if (actionMode != null){
+                    if (positionSet.contains(position)) {
+                        // 如果包含，则撤销选择
+                        positionSet.remove(position);
+                    } else {
+                        // 如果不包含，则添加
+                        positionSet.add(position);
+                    }
+                    actionMode.setTitle(positionSet.size() + " 已选择项目");
+                    // 更新列表界面
+                    adapter.notifyItemChanged(position);
+                }
+                else{
+                    Intent intent = new Intent(getApplicationContext(), WebActivity.class);
+                    intent.putExtra("uri", uri);
+                    intent.putExtra("collectionitem", collectionItemList.get(position));
+                    startActivity(intent);
+                }
             }
 
             @Override
@@ -157,25 +209,13 @@ public class CollectionItemListActivity extends BaseActivity {
 
             @Override
             public void onCollectionItemClick(CollectionItem collectionItem, int position, View v, Context mContext, CheckBox checkBox) {
-                if (actionMode != null){
-                    if (positionSet.contains(position)) {
-                        // 如果包含，则撤销选择
-                        positionSet.remove(position);
-                    } else {
-                        // 如果不包含，则添加
-                        positionSet.add(position);
-                    }
-                    actionMode.setTitle(positionSet.size() + " 已选择项目");
-                    // 更新列表界面
-                    adapter.notifyItemChanged(position);
-                }
-                else{
-                    Intent intent1 = new Intent(getApplicationContext(), AcceptCollectionitemAndEditActivity.class);
-                    intent1.setAction("FROM_IN");
-                    intent1.putExtra("CollectionItemID", (long)collectionItem.getId());
-                    intent1.putExtra("SpinnerIndex", SpinnerIndex);
-                    startActivity(intent1);
-                }
+
+                Intent intent1 = new Intent(getApplicationContext(), AcceptCollectionitemAndEditActivity.class);
+                intent1.setAction("FROM_IN");
+                intent1.putExtra("CollectionItemID", (long)collectionItem.getId());
+                intent1.putExtra("SpinnerIndex", SpinnerIndex);
+                startActivity(intent1);
+
             }
         });
 
@@ -221,13 +261,15 @@ public class CollectionItemListActivity extends BaseActivity {
         }
 
         //初始化列表
-        recyclerView = (RecyclerView)findViewById(R.id.recy_collectionlist);
+        recyclerView = (SwipeMenuRecyclerView) findViewById(R.id.recy_collectionlist);
         recyclerView.setLayoutManager(layoutManager);
-        recyclerView.setItemViewCacheSize(10);
         recyclerView.setHasFixedSize(true);
         recyclerView.setNestedScrollingEnabled(true);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
+        recyclerView.useDefaultLoadMore();
         recyclerView.setAdapter(adapter);
+        recyclerView.setItemViewSwipeEnabled(false);
+
 
         //初始化fab，设置点击监听
         fab = (FloatingActionButton)findViewById(R.id.collectionlistitem_fab);
@@ -271,7 +313,13 @@ public class CollectionItemListActivity extends BaseActivity {
 
                 //列表刷新成搜索内容
                 collectionItemList.clear();
-                List<CollectionItem> newList = LitePal.where("Title LIKE ? and ParentCategory = ?", "%"+query+"%", category.getPackageName()).order("id desc").find(CollectionItem.class);
+                List<CollectionItem> newList;
+                if (category.getPackageName().equals("全部收藏")){
+                    newList = LitePal.where("Title LIKE ?", "%"+query+"%").order("id desc").find(CollectionItem.class);
+                }
+                else{
+                    newList = LitePal.where("Title LIKE ? and ParentCategory = ?", "%"+query+"%", category.getPackageName()).order("id desc").find(CollectionItem.class);
+                }
                 collectionItemList.addAll(newList);
                 adapter.notifyDataSetChanged();
 
@@ -283,7 +331,13 @@ public class CollectionItemListActivity extends BaseActivity {
 
                 //列表刷新成搜索内容
                 collectionItemList.clear();
-                List<CollectionItem> newList = LitePal.where("Title LIKE ? and ParentCategory = ?", "%"+newText+"%", category.getPackageName()).order("id desc").find(CollectionItem.class);
+                List<CollectionItem> newList;
+                if (category.getPackageName().equals("全部收藏")){
+                    newList = LitePal.where("Title LIKE ?", "%"+newText+"%").order("id desc").find(CollectionItem.class);
+                }
+                else{
+                    newList = LitePal.where("Title LIKE ? and ParentCategory = ?", "%"+newText+"%", category.getPackageName()).order("id desc").find(CollectionItem.class);
+                }
                 collectionItemList.addAll(newList);
                 adapter.notifyDataSetChanged();
 

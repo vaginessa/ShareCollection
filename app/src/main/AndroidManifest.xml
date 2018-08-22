@@ -39,15 +39,12 @@
             android:name=".ApplistActivity"
             android:label="应用列表"
             android:theme="@style/white_transStat" />
-        <activity
-            android:name=".LoginActivity" />
-        <activity
-            android:name=".RegisterActivity" />
+        <activity android:name=".LoginActivity" />
+        <activity android:name=".RegisterActivity" />
         <activity
             android:name=".AccountCenterActivity"
-            android:label="个人中心"/>
-        <activity
-            android:name=".ChangePasswordActivity"></activity>
+            android:label="个人中心" />
+        <activity android:name=".ChangePasswordActivity" />
         <activity
             android:name=".CollectionItemListActivity"
             android:theme="@style/white_transStat" />
@@ -72,6 +69,8 @@
             android:name=".FloatButtonService"
             android:enabled="true"
             android:exported="true" />
+
+        <activity android:name=".WebActivity"></activity>
     </application>
 
 </manifest>

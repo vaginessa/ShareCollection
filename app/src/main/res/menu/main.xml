@@ -2,11 +2,6 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:id="@+id/main_menu_getImage"
-        android:title="获取全部缩略图"
-        android:icon="@drawable/ic_sync_black_24dp"
-        app:showAsAction="always"/>
-    <item
         android:id="@+id/main_menu_upload"
         android:title="从本机同步道云端"
         android:icon="@drawable/ic_cloud_upload_black_24dp"
@@ -17,4 +12,16 @@
         android:title="从云端同步到本机"
         android:icon="@drawable/ic_cloud_download_black_24dp"
         app:showAsAction="ifRoom"/>
+
+    <item
+        android:id="@+id/main_menu_getImage"
+        android:title="获取全部缩略图"
+        android:icon="@drawable/ic_sync_black_24dp"
+        app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/main_menu_load_webview"
+        android:title="缓存所有收藏(很不稳定)"
+        android:icon="@drawable/ic_file_download_black_24dp"
+        app:showAsAction="never"/>
 </menu>

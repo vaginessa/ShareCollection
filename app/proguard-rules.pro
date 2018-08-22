@@ -82,3 +82,12 @@
 -keep class com.android.internal.http.multipart.**{*;}
 -keep class org.apache.commons.**{*;}
 -keep class org.apache.http.**{*;}
+
+#SwipeMenuRecyclerView
+-keepclasseswithmembers class android.support.v7.widget.RecyclerView$ViewHolder {
+   public final View *;
+}
+
+#CacheWebview
+-dontwarn ren.yale.android.cachewebviewlib.**
+-keep class ren.yale.android.cachewebviewlib.**{*;}
