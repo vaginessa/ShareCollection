@@ -13,6 +13,7 @@ import android.graphics.Matrix;
 import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.opengl.Visibility;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -37,19 +38,18 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.webkit.CookieManager;
-import android.webkit.ValueCallback;
-import android.webkit.WebResourceRequest;
-import android.webkit.WebResourceResponse;
-import android.webkit.WebSettings;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
 import android.widget.CheckBox;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
+import com.tencent.smtt.export.external.interfaces.WebResourceRequest;
+import com.tencent.smtt.export.external.interfaces.WebResourceResponse;
+import com.tencent.smtt.sdk.CookieManager;
+import com.tencent.smtt.sdk.CookieSyncManager;
+import com.tencent.smtt.sdk.QbSdk;
+import com.tencent.smtt.sdk.WebView;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -65,6 +65,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
@@ -76,10 +77,6 @@ import cn.bmob.v3.datatype.BatchResult;
 import cn.bmob.v3.exception.BmobException;
 import cn.bmob.v3.listener.FindListener;
 import cn.bmob.v3.listener.QueryListListener;
-import ren.yale.android.cachewebviewlib.CacheType;
-import ren.yale.android.cachewebviewlib.WebViewCacheInterceptor;
-import ren.yale.android.cachewebviewlib.WebViewCacheInterceptorInst;
-import ren.yale.android.cachewebviewlib.config.CacheExtensionConfig;
 
 public class MainActivity extends BaseActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -127,9 +124,6 @@ public class MainActivity extends BaseActivity
     private DrawerLayout drawer;
     private ProgressDialog progressDialog;
 
-    private final int UPLOAD = 0;
-    private final int DOWNLOAD = 1;
-
     public static final String TAG = "MainActivity";
 
     @Override
@@ -153,26 +147,7 @@ public class MainActivity extends BaseActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //初始化webview缓存器
-        WebViewCacheInterceptor.Builder builder = new WebViewCacheInterceptor.Builder(this);
-        builder.setCachePath(new File(this.getCacheDir(), "cache_path_name"))//设置缓存路径，默认getCacheDir，名称CacheWebViewCache
-                .setCacheSize(1024 * 1024 * 512)//设置缓存大小，默认100M
-                .setConnectTimeoutSecond(20)//设置http请求链接超时，默认20秒
-                .setReadTimeoutSecond(20)//设置http请求链接读取超时，默认20秒
-                .setCacheType(CacheType.FORCE);
-        CacheExtensionConfig extension = new CacheExtensionConfig();
-        for (Object obj : STATIC){
-            Log.d(TAG, "onCreate: " + "STATIC: " + obj.toString());
-            extension.addExtension(obj.toString());
-        }
-        builder.setCacheExtensionConfig(extension);
-        builder.setDebug(false);
-        builder.setAssetsDir("static");
-        builder.setTrustAllHostname();
-        WebViewCacheInterceptorInst.getInstance().
-                init(builder);
-        WebViewCacheInterceptorInst.getInstance().enableForce(true);
-
+        QbSdk.initX5Environment(getApplicationContext(), null);
 
         if(LitePal.where("PackageName = ?", "全部收藏").find(Category.class).size() == 0){
             Category category = new Category("全部收藏", tools.DrawableToByteArray(ContextCompat.getDrawable(this, R.drawable.ic_folder_black_24dp)), "全部收藏", "全部收藏");
@@ -335,9 +310,6 @@ public class MainActivity extends BaseActivity
                 break;
             case R.id.main_menu_getImage:
                 getAllImage();
-                break;
-            case R.id.main_menu_load_webview:
-                loadAllWebView();
                 break;
         }
 
@@ -1101,138 +1073,4 @@ public class MainActivity extends BaseActivity
         Bitmap bitmap = Bitmap.createBitmap(orgBitmap, 0, 0, (int) width, (int) height, matrix, true);
         return bitmap;
     }
-
-
-    //load所有webview
-    private void loadAllWebView(){
-        load_Index = 0;
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                List<CollectionItem> collectionItems = LitePal.findAll(CollectionItem.class);
-                for (final CollectionItem collectionItem : collectionItems){
-                    loadWebView(collectionItem.getId(), collectionItem.getmUri(), collectionItems.size());
-                }
-            }
-        }).run();
-    }
-
-    //预加载webview
-    private void loadWebView(long id, String uri, final int total){
-        String collection_id = new Long(id).toString();
-
-        String base_address = getApplicationContext().getExternalCacheDir().getAbsolutePath();
-        final File cache = new File(base_address, collection_id + ".mhtml");
-        Log.d("WebActivityLogd", "onCreate: "+ cache.getAbsolutePath().toString());
-
-
-        WebViewCacheInterceptorInst.getInstance().enableForce(true);
-
-        //初始化webView
-        final WebView webView = new WebView(getApplicationContext());
-        WebSettings webSettings = webView.getSettings();
-        webSettings.setJavaScriptEnabled(true);
-        webSettings.setJavaScriptCanOpenWindowsAutomatically(true);
-        webSettings.setDomStorageEnabled(true);
-        webSettings.setAllowFileAccess(true);
-        webSettings.setAllowContentAccess(true);
-        webSettings.setAppCacheEnabled(false);
-        webSettings.setUseWideViewPort(true);
-        webSettings.setLoadsImagesAutomatically(true);
-        webSettings.setLoadWithOverviewMode(true);
-        webSettings.setSupportZoom(true);
-        webSettings.setBuiltInZoomControls(true);
-        webSettings.setDisplayZoomControls(false);
-        webSettings.setDefaultTextEncodingName("UTF-8");
-        webSettings.setAllowFileAccessFromFileURLs(true);
-        webSettings.setAllowUniversalAccessFromFileURLs(true);
-        CookieManager cookieManager = CookieManager.getInstance();
-
-
-        webSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE);
-        if(tools.NetWork){
-            webSettings.setCacheMode(WebSettings.LOAD_DEFAULT);
-        }
-        else{
-            webSettings.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
-        }
-
-        //        webView.getSettings().setSupportMultipleWindows(true);
-        //        // 开启 DOM storage API 功能
-        //        webView.getSettings().setDomStorageEnabled(true);
-        //        // 开启 Application Caches 功能
-        //        webView.getSettings().setAppCacheEnabled(true);
-
-
-        //给webView添加拦截用于缓存
-        if (tools.NetWork){
-            webView.setWebViewClient(new WebViewClient(){
-
-                @Override
-                public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-                    WebViewCacheInterceptorInst.getInstance().loadUrl(webView,request.getUrl().toString());
-                    hasFinishLoadWeb = false;
-                    return true;
-                }
-
-                @Override
-                public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                    WebViewCacheInterceptorInst.getInstance().loadUrl(webView,url);
-                    hasFinishLoadWeb = false;
-                    return true;
-                }
-
-                @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-                @Nullable
-                @Override
-                public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
-                    hasFinishLoadWeb = false;
-                    return  WebViewCacheInterceptorInst.getInstance().interceptRequest(request);
-                }
-
-                @Nullable
-                @Override
-                public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
-                    hasFinishLoadWeb = false;
-                    return  WebViewCacheInterceptorInst.getInstance().interceptRequest(url);
-                }
-
-                @Override
-                public void onPageFinished(final WebView view, String url) {
-                    super.onPageFinished(view, url);
-                    Log.d("WebActivityLogd", "onPageFinished: ");
-                    load_Index++;
-                    Toast.makeText(getApplicationContext(), "第" + load_Index + "缓存完毕，" + "需缓存" + total + "条目", Toast.LENGTH_SHORT).show();
-                    if (hasFinishLoadWeb){
-                        view.saveWebArchive(cache.getAbsolutePath(), false, new ValueCallback<String>() {
-                            @Override
-                            public void onReceiveValue(String value) {
-                                Log.d("WebActivityLogd", "onReceiveValue: ");
-                                view.destroy();
-                            }
-                        });
-                    }
-                }
-
-
-
-                @Override
-                public void onPageStarted(WebView view, String url, Bitmap favicon) {
-                    super.onPageStarted(view, url, favicon);
-                    hasFinishLoadWeb = true;
-                    Log.d("WebActivityLogd", "onPageStarted: ");
-                }
-            });
-            webView.loadUrl(uri);
-        }
-        else{
-            WebViewCacheInterceptorInst.getInstance().loadUrl(webView, uri);
-            //webView.loadUrl(uri);
-            //webView.loadUrl("file:///storage/emulated/0/Android/data/sterbenj.com.sharecollection/cache/" + collection_id + ".mhtml");
-        }
-    }
-
-
-
-
 }

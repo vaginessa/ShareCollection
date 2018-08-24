@@ -128,7 +128,7 @@
             android:layout_weight="1"
             android:layout_marginVertical="8dp"
             android:layout_marginLeft="8dp"
-            android:src="@drawable/ic_forward_black_24dp"
+            android:src="@drawable/ic_file_download_black_24dp"
             android:background="@drawable/ic_background_tran"/>
 
     </LinearLayout>

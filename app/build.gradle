@@ -6,16 +6,19 @@ android {
         applicationId 'sterbenj.com.sharecollection'
         minSdkVersion 21
         targetSdkVersion 27
-        versionCode 25
-        versionName "1.5.0"
+        versionCode 26
+        versionName "1.5.1"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         useLibrary 'org.apache.http.legacy'
+        ndk{
+            abiFilters "armeabi"
+        }
     }
     buildTypes {
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            versionNameSuffix '-beta'
+            versionNameSuffix '-release'
         }
     }
     productFlavors {
@@ -37,7 +40,6 @@ dependencies {
     implementation 'org.jsoup:jsoup:1.11.3'
     implementation 'cn.bmob.android:bmob-sdk:3.6.3'
     implementation 'com.yanzhenjie:recyclerview-swipe:1.1.4'
-    implementation 'ren.yale.android:cachewebviewlib:2.0.2'
     implementation ('com.squareup.okhttp3:okhttp:3.11.0'){
         exclude group : 'com.squareup.okio'
     }

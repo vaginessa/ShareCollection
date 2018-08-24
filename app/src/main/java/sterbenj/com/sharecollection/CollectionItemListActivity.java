@@ -52,7 +52,6 @@ import java.util.Map;
 import java.util.Set;
 
 import jp.wasabeef.glide.transformations.BlurTransformation;
-import ren.yale.android.cachewebviewlib.WebViewCacheInterceptorInst;
 
 /**
  * XJB Created by 野良人 on 2018/6/13.
@@ -165,6 +164,9 @@ public class CollectionItemListActivity extends BaseActivity {
 
             @Override
             public void JumpOfflineWeb(String uri, int position) {
+                if (tools.NetWork){
+                    Toast.makeText(getApplicationContext(), "请等待加载完成", Toast.LENGTH_LONG).show();
+                }
                 if (actionMode != null){
                     if (positionSet.contains(position)) {
                         // 如果包含，则撤销选择
